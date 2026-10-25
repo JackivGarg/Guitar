@@ -36,9 +36,13 @@
     "lint": "eslint src && tsc",
     "studio": "remotion studio --no-open --port 3001",
     "start": "node server.mjs",
-    "check": "tsc --noEmit"
+    "check": "tsc --noEmit",
+    "test": "node --test tests/*.test.mjs"
   },
   "allowScripts": {
     "esbuild": false
+  },
+  "overrides": {
+    "zod": "4.6.7"
   }
 }
