@@ -12,7 +12,7 @@ export type Progress = {
   checks: Record<string, boolean>;
   notes: Record<string, string>;
   sessions: Session[];
-  scores: { date: string; pair: string; count: number }[];
+  scores: { date: string; pair: string; count: number; seconds?: number }[];
   lastLesson: number;
   goal: number;
 };
@@ -87,7 +87,9 @@ export function validProgress(x: unknown): x is Progress {
         typeof s.date === "string" &&
         typeof s.pair === "string" &&
         Number.isInteger(s.count) &&
-        s.count >= 0,
+        s.count >= 0 &&
+        (s.seconds === undefined ||
+          (Number.isFinite(s.seconds) && s.seconds > 0 && s.seconds <= 3600)),
     ) &&
     Number.isInteger(p.lastLesson) &&
     p.lastLesson >= 1 &&

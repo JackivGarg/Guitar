@@ -33,6 +33,7 @@ import {
 } from "lucide-react";
 import { lessons, chords, getChord, Lesson } from "./course";
 import { Demo } from "./Demo";
+import { LessonSeven } from "./LessonSeven";
 import { ChordDiagram, GuitarArt } from "./visuals";
 import { playChord } from "./sound";
 import { Changes, Fretboard, Metronome, Tuning } from "./Tools";
@@ -366,7 +367,11 @@ export default function App() {
                   <div>
                     <strong>
                       {progress.scores.length > 0
-                        ? Math.max(...progress.scores.map((s) => s.count))
+                        ? Math.max(
+                            ...progress.scores.map((s) =>
+                              Math.round((s.count * 60) / (s.seconds ?? 60)),
+                            ),
+                          )
                         : 0}
                     </strong>
                     <span>Best changes / minute</span>
@@ -737,6 +742,20 @@ function LessonView({
   ).filter((s) =>
     s.text.toLocaleLowerCase().includes(query.toLocaleLowerCase()),
   );
+  if (l.id === 7)
+    return (
+      <LessonSeven
+        progress={progress}
+        setProgress={setProgress}
+        source={source}
+        imported={imported}
+        onImport={onImport}
+        onBack={onBack}
+        onNext={onNext}
+        onPractice={onPractice}
+        toast={toast}
+      />
+    );
   return (
     <>
       <button className="text-button back-button" onClick={onBack}>
@@ -863,10 +882,6 @@ function LessonView({
                   <b>Pick up your guitar. Try this.</b>
                   <p>{l.steps[step].action}</p>
                 </div>
-              </div>
-              <div className="hindi-note">
-                <span>हिंदी में याद रखें</span>
-                <p>{l.hindi}</p>
               </div>
               <div className="step-controls">
                 <button
@@ -1328,8 +1343,9 @@ function PracticeSession({
     saved: false,
     feeling: "Steady",
     lesson: l.id,
+    day: dayKey(),
   });
-  const same = draft.lesson === l.id;
+  const same = draft.lesson === l.id && draft.day === dayKey();
   const [duration, setDuration] = useState(
       same ? draft.duration : progress.goal,
     ),
@@ -1338,7 +1354,15 @@ function PracticeSession({
     [saved, setSaved] = useState(same ? draft.saved : false),
     [feeling, setFeeling] = useState(same ? draft.feeling : "Steady");
   useEffect(
-    () => setDraft({ duration, elapsed, saved, feeling, lesson: l.id }),
+    () =>
+      setDraft({
+        duration,
+        elapsed,
+        saved,
+        feeling,
+        lesson: l.id,
+        day: dayKey(),
+      }),
     [duration, elapsed, saved, feeling, l.id],
   );
   const started = useRef(0),

@@ -440,10 +440,10 @@ export const lessons: Lesson[] = [
     title: "Smooth chord changes",
     short: "Move less. Play more.",
     category: "Technique",
-    minutes: 20,
+    minutes: 60,
     mode: "shift",
     description:
-      "Build reliable changes with anchor fingers and slow, deliberate movement.",
+      "A complete workshop: every source exercise, exact finger routes, 15 separate clips, and forward-and-back practice.",
     hindi:
       "पहले साफ आवाज़, फिर रफ़्तार। जहाँ संभव हो उंगली को anchor बनाए रखें।",
     chords: ["C", "Am", "Em", "Fmaj7", "G", "D"],
