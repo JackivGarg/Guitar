@@ -1,8 +1,11 @@
 {
   "name": "guitar-path",
   "version": "1.0.0",
-  "description": "My Remotion video",
-  "repository": {},
+  "description": "Six Strings: local guitar lessons and daily practice",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/JackivGarg/Guitar.git"
+  },
   "license": "UNLICENSED",
   "engines": {
     "node": "^20.19.0 || ^22.13.0 || >=24"
@@ -10,6 +13,8 @@
   "private": true,
   "dependencies": {
     "@remotion/cli": "4.0.538",
+    "@remotion/player": "4.0.538",
+    "lucide-react": "1.61.0",
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "remotion": "4.0.538"
@@ -20,13 +25,17 @@
     "@types/web": "0.0.166",
     "eslint": "10.12.0",
     "prettier": "3.8.1",
-    "typescript": "5.9.3"
+    "typescript": "5.9.3",
+    "vite": "^7.3.7"
   },
   "scripts": {
-    "dev": "remotion studio",
-    "build": "remotion bundle",
+    "dev": "vite --host 127.0.0.1 --port 5173",
+    "build": "tsc --noEmit && vite build",
     "upgrade": "remotion upgrade",
-    "lint": "eslint src && tsc"
+    "lint": "eslint src && tsc",
+    "studio": "remotion studio --no-open --port 3001",
+    "start": "node server.mjs",
+    "check": "tsc --noEmit"
   },
   "allowScripts": {
     "esbuild": false

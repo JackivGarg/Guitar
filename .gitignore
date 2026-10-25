@@ -5,3 +5,11 @@ dist
 
 # Ignore the output video from Git but not videos you import into src/.
 out
+
+# Personal learning material stays on this computer.
+public/sources/
+public/transcripts.json
+public/lesson-07.mp3
+*.log
+*.local.json
+.server.pid
