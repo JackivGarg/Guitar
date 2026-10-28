@@ -227,7 +227,7 @@ export function Demo({ mode, chordName = "C", pattern = 1 }: DemoProps) {
           Say it aloud:{" "}
           {mode === "mute"
             ? "down · mute up · up mute up"
-            : "down · down up · up down up"}
+            : slots.map(s=>s==="D"?"down":s==="U"?"up":"·").join(" ")}
         </p>
         {mode === "mute" && (
           <p style={{ fontSize: 19, textAlign: "center", color: accent }}>

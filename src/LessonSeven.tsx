@@ -16,6 +16,7 @@ import {
   Download,
   Upload,
 } from "lucide-react";
+import { SourceVideo } from "./SourceVideo";
 import { ChangeDemo } from "./ChangeDemo";
 import {
   changes,
@@ -94,7 +95,11 @@ export function LessonSeven({
     setLocation({ block: id, pair: b.pairs[0] });
     setView("workshop");
     setStep(0);
-    window.scrollTo({ top: 0 });
+    requestAnimationFrame(() =>
+      document
+        .getElementById("lesson7-exercise")
+        ?.scrollIntoView({ block: "start", behavior: "smooth" }),
+    );
   };
   const choosePair = (id: string) => {
     setLocation((l) => ({ ...l, pair: id }));
@@ -164,6 +169,21 @@ export function LessonSeven({
           </span>
         </div>
       </div>
+      <button
+        className="primary workshop-resume"
+        onClick={() => {
+          setView("workshop");
+          requestAnimationFrame(() =>
+            document
+              .getElementById("lesson7-exercise")
+              ?.scrollIntoView({ block: "start", behavior: "smooth" }),
+          );
+        }}
+      >
+        Continue exercise {block.id}: {block.title}
+        <ArrowRight size={16} />
+      </button>
+      <SourceVideo lesson={7} start={block.start} />
       <section className="workshop-audio card">
         <div>
           <Headphones size={20} />
@@ -285,7 +305,7 @@ export function LessonSeven({
             </button>
           </aside>
           <div className="exercise-main">
-            <div className="exercise-title">
+            <div className="exercise-title" id="lesson7-exercise">
               <div className="section-label">
                 EXERCISE BLOCK {String(block.id).padStart(2, "0")}
               </div>

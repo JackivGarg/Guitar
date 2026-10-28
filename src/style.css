@@ -2970,3 +2970,287 @@ select {
   color: #8e699a;
   border-color: #cdb5d6;
 }
+
+/* Lesson chapters keep instruction, demonstration and practice together. */
+.source-video-panel {
+  margin: 0 0 26px;
+  padding: 22px 26px;
+  background: #f1edf2;
+  border: 1px solid #ded4e2;
+  border-radius: 13px;
+}
+.source-video-panel .card-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+.source-video-panel h3 {
+  margin: 5px 0 9px;
+}
+.source-video-panel p {
+  color: #69576e;
+  margin-bottom: 14px;
+}
+.source-video-panel .micro {
+  font-size: 11px;
+  margin: 12px 0 0;
+}
+.source-video-panel .button-row {
+  flex-wrap: wrap;
+}
+.original-video-frame {
+  position: relative;
+  aspect-ratio: 16/9;
+  margin: 18px 0;
+  overflow: hidden;
+  border-radius: 10px;
+  background: #28212b;
+}
+.original-video-frame iframe {
+  border: 0;
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  inset: 0;
+}
+.supplementary-note {
+  padding: 14px 18px;
+  background: #fbf0e3;
+  color: #765236;
+  border-radius: 9px;
+}
+.chapter-selector {
+  margin-bottom: 22px;
+}
+.chapter-selector label {
+  display: block;
+  font-size: 11px;
+  letter-spacing: 1.2px;
+  color: #78607e;
+  margin-bottom: 10px;
+}
+.chapter-selector select {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #d9ccde;
+  background: #f9f5fa;
+  color: #49324d;
+  border-radius: 7px;
+  font-size: 14px;
+}
+.lesson-step .teaching-text {
+  white-space: pre-line;
+  color: #5b4d5e;
+  font-size: 15px;
+  line-height: 1.9;
+}
+.lesson-step .demo-wrapper {
+  margin: 22px 0;
+}
+.demo-options > span {
+  font-size: 12px;
+  color: #69516f;
+}
+.lesson-step .try-box p {
+  white-space: pre-line;
+  color: #66536d;
+  font-size: 14px;
+}
+.chapter-practiced {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 18px 0;
+  color: #4d3c54;
+  font-size: 14px;
+  line-height: 1.65;
+}
+.chapter-practiced input {
+  accent-color: #60476a;
+  margin-top: 5px;
+  min-width: 17px;
+  min-height: 17px;
+}
+.chapter-outline p {
+  font-size: 12px;
+  line-height: 1.65;
+  color: #74617b;
+}
+.chapter-outline ol {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 650px;
+  overflow: auto;
+}
+.chapter-outline li {
+  margin-bottom: 4px;
+}
+.chapter-outline button {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  text-align: left;
+  width: 100%;
+  padding: 11px 8px;
+  font-size: 12px;
+  line-height: 1.55;
+  border-radius: 7px;
+  color: #69546f;
+}
+.chapter-outline button > span {
+  display: grid;
+  place-items: center;
+  width: 23px;
+  height: 23px;
+  flex-shrink: 0;
+  background: #f1ebf3;
+  border-radius: 50%;
+  font-size: 10px;
+}
+.chapter-outline button.current {
+  background: #eee5f1;
+  color: #49324d;
+}
+.chapter-outline button.current > span {
+  background: #60476a;
+  color: white;
+}
+.chapter-outline small {
+  display: block;
+  font-size: 10px;
+  color: #88728f;
+  margin-top: 3px;
+}
+.chapter-summary {
+  padding: 15px;
+  background: #f2edf4;
+  border-radius: 8px;
+  color: #65506d;
+}
+.barre-explorer,
+.inline-fretboard {
+  margin-top: 25px;
+  border-top: 1px solid #e3d9e5;
+  padding-top: 20px;
+}
+.barre-explorer summary,
+.inline-fretboard summary {
+  cursor: pointer;
+  color: #60476a;
+  font-weight: 600;
+  font-size: 14px;
+  margin-bottom: 14px;
+}
+.barre-explorer p {
+  font-size: 13px;
+  color: #68556f;
+}
+.barre-controls {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.barre-controls label {
+  font-size: 11px;
+  color: #705b77;
+}
+.barre-controls select {
+  display: block;
+  width: 100%;
+  padding: 9px;
+  border: 1px solid #ddd1e2;
+  border-radius: 5px;
+  background: #fffefa;
+  color: #49324d;
+  margin-top: 5px;
+}
+.barre-result {
+  display: grid;
+  grid-template-columns: 180px 1fr;
+  gap: 23px;
+  align-items: center;
+  margin-top: 20px;
+}
+.barre-result h3 {
+  font-size: 18px;
+}
+.barre-diagram {
+  max-width: 200px;
+}
+.timestamp {
+  display: inline-block;
+  text-decoration: none;
+}
+.lesson-step .step-controls {
+  flex-wrap: wrap;
+  gap: 13px;
+}
+@media (max-width: 650px) {
+  .source-video-panel {
+    padding: 18px;
+  }
+  .source-video-panel .card-heading {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 0;
+  }
+  .source-video-panel .tag {
+    font-size: 9px;
+  }
+  .source-video-panel .primary,
+  .source-video-panel .secondary {
+    font-size: 11px;
+  }
+  .barre-result {
+    grid-template-columns: 1fr;
+    gap: 5px;
+  }
+  .barre-diagram {
+    margin: auto;
+    width: 180px;
+  }
+  .chapter-outline ol {
+    max-height: 360px;
+  }
+}
+
+.source-video-panel > summary {
+  cursor: pointer;
+  color: #60476a;
+  font-size: 14px;
+  font-weight: 600;
+}
+.source-video-panel > summary > span {
+  font-size: 12px;
+  font-weight: 400;
+  color: #7d6884;
+  margin-left: 14px;
+}
+.source-video-panel[open] > summary {
+  margin-bottom: 22px;
+}
+.lesson-side .chapter-outline {
+  position: sticky;
+  top: 18px;
+}
+.lesson-layout {
+  align-items: start;
+}
+@media (max-width: 650px) {
+  .source-video-panel > summary > span {
+    display: block;
+    margin: 7px 0 0;
+  }
+}
+
+.path-chapters {
+  display: block;
+  color: #786180;
+  font-size: 11px;
+  margin-top: 9px;
+}
+.chapter-selector {
+  scroll-margin-top: 24px;
+}

@@ -31,8 +31,11 @@ import {
   Volume2,
   X,
 } from "lucide-react";
-import { lessons, chords, getChord, Lesson } from "./course";
-import { Demo } from "./Demo";
+import { chords, getChord, Lesson } from "./course";
+import { lessons, videoIds } from "./learningPath";
+import { SourceVideo } from "./SourceVideo";
+import { BarreExplorer } from "./BarreExplorer";
+import { LessonDemo } from "./TechniqueDemo";
 import { LessonSeven } from "./LessonSeven";
 import { ChordDiagram, GuitarArt } from "./visuals";
 import { playChord } from "./sound";
@@ -67,14 +70,25 @@ function download(name: string, data: string, type = "application/json") {
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
+function readRoute(): { page: Page; lesson: number | null } {
+  const match = location.hash.match(/^#\/lesson\/(10|[1-9])$/);
+  if (match) return { page: "learn", lesson: Number(match[1]) };
+  const page = location.hash.slice(2);
+  return {
+    page: ["today", "learn", "chords", "practice", "journal"].includes(page)
+      ? (page as Page)
+      : "today",
+    lesson: null,
+  };
+}
 export default function App() {
   const [progress, setProgress, storageError] = useStored<Progress>(
     "six-strings-progress-v1",
     blank,
     validProgress,
   );
-  const [page, setPage] = useState<Page>("today"),
-    [lessonId, setLessonId] = useState<number | null>(null),
+  const [page, setPage] = useState<Page>(() => readRoute().page),
+    [lessonId, setLessonId] = useState<number | null>(() => readRoute().lesson),
     [mobile, setMobile] = useState(false),
     [toast, setToast] = useState(""),
     [practiceTab, setPracticeTab] = useState("Session");
@@ -83,7 +97,11 @@ export default function App() {
     Record<string, string>
   >("six-strings-sources-v1", {});
   const next =
-    lessons.find((l) => !progress.completed.includes(l.id)) ?? lessons[9];
+    lessons.find(
+      (l) => l.id === progress.lastLesson && !progress.completed.includes(l.id),
+    ) ??
+    lessons.find((l) => !progress.completed.includes(l.id)) ??
+    lessons[9];
   const todaySeconds = progress.sessions
     .filter((s) => s.date === dayKey())
     .reduce((n, s) => n + s.seconds, 0);
@@ -99,7 +117,20 @@ export default function App() {
     const id = setTimeout(() => setToast(""), 4500);
     return () => clearTimeout(id);
   }, [toast]);
+  useEffect(() => {
+    const sync = () => {
+      const route = readRoute();
+      setPage(route.page);
+      setLessonId(route.lesson);
+      if (route.lesson)
+        setProgress((p) => ({ ...p, lastLesson: route.lesson! }));
+    };
+    sync();
+    window.addEventListener("hashchange", sync);
+    return () => window.removeEventListener("hashchange", sync);
+  }, []);
   const nav = (p: Page) => {
+    location.hash = `/${p}`;
     setPage(p);
     setLessonId(null);
     setMobile(false);
@@ -107,6 +138,7 @@ export default function App() {
     speechSynthesis.cancel();
   };
   const openLesson = (id: number) => {
+    location.hash = `/lesson/${id}`;
     setLessonId(id);
     setPage("learn");
     setMobile(false);
@@ -427,7 +459,7 @@ export default function App() {
               <PageTitle
                 eyebrow="ONE STEP AT A TIME"
                 title="Your learning path."
-                text="Ten lessons. A clear way forward. Start at the beginning, revisit whenever you like."
+                text="One lesson for each video, numbered 1–10. Follow its chapters in teaching order, practise each exercise, then continue."
               />
               <div className="path-banner">
                 <div>
@@ -466,6 +498,12 @@ export default function App() {
                       <div className="section-label">{l.category}</div>
                       <h3>{l.title}</h3>
                       <p>{l.description}</p>
+                      <small className="path-chapters">
+                        {l.id === 7
+                          ? "11 exercise blocks · 15 change clips"
+                          : `${l.steps.length} guided chapters`}{" "}
+                        · Original video inside
+                      </small>
                     </div>
                     <span className="source-chip">
                       {sources[l.id] || imported[l.id]
@@ -702,14 +740,42 @@ function LessonView({
   onChord: () => void;
   toast: (s: string) => void;
 }) {
-  const [demoMode, setDemoMode] = useState(l.mode),
-    [demoChord, setDemoChord] = useState(l.chords[0] ?? "C");
+  const [demoMode, setDemoMode] = useState(l.steps[0].demo ?? l.mode),
+    [demoChord, setDemoChord] = useState(
+      l.steps[0].chord ?? l.chords[0] ?? "C",
+    );
   const [tab, setTab] = useState("Learn"),
-    [step, setStep] = useState(0),
     [answer, setAnswer] = useState<number | null>(null),
     [query, setQuery] = useState(""),
     [rate, setRate] = useState(1),
     [speaking, setSpeaking] = useState(false);
+  const [step, setStep] = useStored<number>(
+    `six-strings-chapter-${l.id}`,
+    0,
+    (value) =>
+      Number.isInteger(value) &&
+      Number(value) >= 0 &&
+      Number(value) < l.steps.length,
+  );
+  const chapter = l.steps[step];
+  useEffect(() => {
+    setDemoMode(chapter.demo ?? l.mode);
+    setDemoChord(chapter.chord ?? l.chords[0] ?? "C");
+    speechSynthesis.cancel();
+    setSpeaking(false);
+  }, [step, l.id]);
+  const chooseChapter = (i: number) => {
+    setStep(i);
+    speechSynthesis.cancel();
+    setSpeaking(false);
+    requestAnimationFrame(() =>
+      document
+        .getElementById("chapter-select")
+        ?.scrollIntoView({ block: "start", behavior: "smooth" }),
+    );
+  };
+  const chapterKey = (i: number) => `${l.id}-chapter-${l.steps[i].title}`;
+  const chaptersDone = l.steps.every((_, i) => progress.checks[chapterKey(i)]);
   const input = useRef<HTMLInputElement>(null),
     audio = useRef<HTMLAudioElement>(null);
   const checks = l.check.every((_, i) => progress.checks[`${l.id}-${i}`]);
@@ -774,70 +840,16 @@ function LessonView({
           {l.minutes} MIN
         </span>
       </div>
+      <SourceVideo lesson={l.id} start={chapter.sourceStart} />
+      {!source && !imported && (
+        <p className="supplementary-note">
+          The original video is available above. These English chapters are
+          supplementary exercises because a transcript for this lesson was not
+          supplied.
+        </p>
+      )}
       <div className="lesson-layout">
         <div className="lesson-main">
-          <div className="demo-wrapper">
-            <Player
-              key={l.id}
-              component={Demo}
-              inputProps={{ mode: demoMode, chordName: demoChord }}
-              durationInFrames={360}
-              fps={30}
-              compositionWidth={1200}
-              compositionHeight={760}
-              style={{ width: "100%" }}
-              controls
-              loop
-              playbackRate={rate}
-              showVolumeControls={false}
-            />
-            <div className="demo-options">
-              {l.id === 8 ? (
-                <>
-                  <button
-                    className={demoMode === "mute" ? "selected" : ""}
-                    onClick={() => setDemoMode("mute")}
-                  >
-                    Muted strum
-                  </button>
-                  <button
-                    className={demoMode === "bridge" ? "selected" : ""}
-                    onClick={() => setDemoMode("bridge")}
-                  >
-                    Bridge palm mute
-                  </button>
-                </>
-              ) : l.mode === "chord" ? (
-                l.chords.map((c) => (
-                  <button
-                    key={c}
-                    className={demoChord === c ? "selected" : ""}
-                    onClick={() => setDemoChord(c)}
-                  >
-                    {c}
-                  </button>
-                ))
-              ) : null}
-            </div>
-            <div className="demo-caption">
-              <span>
-                <span className="status-dot" /> Visual demonstration · pause &
-                replay
-              </span>
-              <label>
-                Speed
-                <select
-                  aria-label="Demonstration speed"
-                  value={rate}
-                  onChange={(e) => setRate(+e.target.value)}
-                >
-                  <option value="0.5">0.5×</option>
-                  <option value="0.75">0.75×</option>
-                  <option value="1">1×</option>
-                </select>
-              </label>
-            </div>
-          </div>
           <div className="tabs lesson-tabs">
             {["Learn", "Try & check", "Source transcript"].map((t) => (
               <button
@@ -851,29 +863,65 @@ function LessonView({
           </div>
           {tab === "Learn" && (
             <section className="card lesson-step">
-              <div className="step-track">
-                {l.steps.map((s, i) => (
-                  <button
-                    key={s.title}
-                    aria-label={`Step ${i + 1}: ${s.title}`}
-                    className={
-                      step === i ? "current" : step > i ? "visited" : ""
-                    }
-                    onClick={() => {
-                      setStep(i);
-                      speechSynthesis.cancel();
-                      setSpeaking(false);
-                    }}
-                  >
-                    {i + 1}
-                  </button>
-                ))}
-                <span>
-                  STEP {step + 1} OF {l.steps.length}
-                </span>
+              <div className="chapter-selector">
+                <label htmlFor="chapter-select">
+                  CHAPTER {step + 1} OF {l.steps.length} · IN VIDEO ORDER
+                </label>
+                <select
+                  id="chapter-select"
+                  value={step}
+                  onChange={(e) => chooseChapter(Number(e.target.value))}
+                >
+                  {l.steps.map((s, i) => (
+                    <option key={s.title} value={i}>
+                      {i + 1}. {s.title}
+                    </option>
+                  ))}
+                </select>
               </div>
               <h2>{l.steps[step].title}</h2>
               <p className="teaching-text">{l.steps[step].text}</p>
+              <div className="demo-wrapper">
+                <Player
+                  key={`${l.id}-${step}-${demoMode}-${demoChord}`}
+                  component={LessonDemo}
+                  inputProps={{
+                    mode: demoMode,
+                    chordName: demoChord,
+                    pattern: chapter.pattern ?? 1,
+                  }}
+                  durationInFrames={demoMode === "fingerexercise" ? 720 : 360}
+                  fps={30}
+                  compositionWidth={1200}
+                  compositionHeight={760}
+                  style={{ width: "100%" }}
+                  controls
+                  loop
+                  playbackRate={rate}
+                  showVolumeControls={false}
+                />
+                <div className="demo-options">
+                  <span>{chapter.title}</span>
+                </div>
+                <div className="demo-caption">
+                  <span>
+                    <span className="status-dot" /> Schematic demonstration ·
+                    pause & replay
+                  </span>
+                  <label>
+                    Speed
+                    <select
+                      aria-label="Demonstration speed"
+                      value={rate}
+                      onChange={(e) => setRate(+e.target.value)}
+                    >
+                      <option value="0.5">0.5×</option>
+                      <option value="0.75">0.75×</option>
+                      <option value="1">1×</option>
+                    </select>
+                  </label>
+                </div>
+              </div>
               <div className="try-box">
                 <span className="try-icon">
                   <Guitar size={22} />
@@ -883,12 +931,30 @@ function LessonView({
                   <p>{l.steps[step].action}</p>
                 </div>
               </div>
+              <label className="chapter-practiced">
+                <input
+                  type="checkbox"
+                  checked={!!progress.checks[chapterKey(step)]}
+                  onChange={(e) =>
+                    setProgress((p) => ({
+                      ...p,
+                      checks: {
+                        ...p.checks,
+                        [chapterKey(step)]: e.target.checked,
+                      },
+                    }))
+                  }
+                />
+                <span>
+                  I tried this exercise on my guitar and checked the result.
+                </span>
+              </label>
               <div className="step-controls">
                 <button
                   className="text-button"
                   disabled={step === 0}
                   onClick={() => {
-                    setStep((s) => s - 1);
+                    chooseChapter(step - 1);
                     speechSynthesis.cancel();
                     setSpeaking(false);
                   }}
@@ -904,14 +970,29 @@ function LessonView({
                   onClick={() => {
                     speechSynthesis.cancel();
                     setSpeaking(false);
-                    if (step < 3) setStep((s) => s + 1);
+                    if (step < l.steps.length - 1) chooseChapter(step + 1);
                     else setTab("Try & check");
                   }}
                 >
-                  {step < 3 ? "Next step" : "Try & check"}
+                  {step < l.steps.length - 1 ? "Next step" : "Try & check"}
                   <ArrowRight size={16} />
                 </button>
               </div>
+              {l.id === 2 && (
+                <button
+                  className="secondary"
+                  onClick={() => onPractice("Tuning")}
+                >
+                  Open tuning tools
+                </button>
+              )}
+              {[5, 6, 9].includes(l.id) && <BarreExplorer />}
+              {[5, 6].includes(l.id) && (
+                <details className="inline-fretboard">
+                  <summary>Open the note explorer</summary>
+                  <Fretboard />
+                </details>
+              )}
             </section>
           )}
           {tab === "Try & check" && (
@@ -940,6 +1021,14 @@ function LessonView({
                   Open practice tools <ArrowUpRight size={16} />
                 </button>
               </div>
+              <p className="chapter-summary">
+                {
+                  l.steps.filter((_, i) => progress.checks[chapterKey(i)])
+                    .length
+                }{" "}
+                of {l.steps.length} chapter exercises practised. Use the chapter
+                list to revisit any unfinished exercise.
+              </p>
               <h3>Can you do these comfortably?</h3>
               <p className="small muted">
                 Try each one on your guitar before ticking it. You assess the
@@ -1013,13 +1102,13 @@ function LessonView({
                 <p>
                   {done
                     ? "You have completed this lesson. Revisit it any time."
-                    : checks && passed
+                    : chaptersDone && checks && passed
                       ? "Ready for the next small step."
-                      : "Complete the three playing checks and answer the question correctly to finish."}
+                      : "Practise and check each chapter, complete the playing checks, and answer the question to finish."}
                 </p>
                 <button
                   className="primary"
-                  disabled={!done && (!checks || !passed)}
+                  disabled={!done && (!chaptersDone || !checks || !passed)}
                   onClick={() => {
                     if (!done) {
                       setProgress((p) => ({
@@ -1116,22 +1205,15 @@ function LessonView({
                   filtered.map((s, i) => (
                     <div key={i}>
                       {!imported && (
-                        <button
-                          title={
-                            l.id === 7
-                              ? "Seek supplied audio"
-                              : "Timestamp in the source video"
-                          }
-                          onClick={() => {
-                            if (l.id === 7 && audio.current) {
-                              audio.current.currentTime = s.start;
-                              void audio.current.play().catch(() => {});
-                            }
-                          }}
+                        <a
                           className="timestamp"
+                          title="Watch this moment in the original video"
+                          href={`https://www.youtube.com/watch?v=${videoIds[l.id - 1]}&t=${Math.floor(s.start)}s`}
+                          target="_blank"
+                          rel="noreferrer"
                         >
-                          {time(s.start)}
-                        </button>
+                          {time(s.start)} ↗
+                        </a>
                       )}
                       <p>{s.text}</p>
                     </div>
@@ -1157,6 +1239,41 @@ function LessonView({
           )}
         </div>
         <aside className="lesson-side">
+          <section className="card chapter-outline">
+            <div className="section-label">ONE VIDEO · ONE LESSON</div>
+            <h3>Follow the lesson in order</h3>
+            <p>Your chapter position and exercise checks save automatically.</p>
+            <ol>
+              {l.steps.map((s, i) => (
+                <li key={s.title}>
+                  <button
+                    className={step === i ? "current" : ""}
+                    aria-current={step === i ? "step" : undefined}
+                    onClick={() => {
+                      setTab("Learn");
+                      chooseChapter(i);
+                    }}
+                  >
+                    <span>
+                      {progress.checks[chapterKey(i)] ? (
+                        <Check size={13} />
+                      ) : (
+                        i + 1
+                      )}
+                    </span>
+                    <div>
+                      {s.title}
+                      <small>
+                        {s.sourceStart !== undefined
+                          ? `Source ≈ ${time(s.sourceStart)}`
+                          : "Supplementary exercise"}
+                      </small>
+                    </div>
+                  </button>
+                </li>
+              ))}
+            </ol>
+          </section>
           <section className="card">
             <div className="section-label">YOUR ROADMAP</div>
             <h3>Learn by doing.</h3>

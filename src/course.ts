@@ -118,7 +118,15 @@ export type Lesson = {
   description: string;
   hindi: string;
   chords: string[];
-  steps: { title: string; text: string; action: string }[];
+  steps: {
+    title: string;
+    text: string;
+    action: string;
+    demo?: string;
+    chord?: string;
+    sourceStart?: number;
+    pattern?: number;
+  }[];
   check: string[];
   quiz: { q: string; options: string[]; answer: number; why: string };
   drill: string;
@@ -654,4 +662,8 @@ export const patterns = [
     slots: ["D", "·", "D", "U", "·", "U", "D", "U"],
   },
   { name: "Muted folk", slots: ["D", "·", "M", "U", "·", "U", "M", "U"] },
+  {
+    name: "Basic · D U D U D U D",
+    slots: ["D", "U", "D", "U", "D", "U", "D", "·"],
+  },
 ];
