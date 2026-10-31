@@ -10,63 +10,107 @@ import {
   workshopChord,
   fingerPosition,
   chordLabel,
-  positionText,
 } from "./lesson7";
-export type ChangeDemoProps = { changeId: string };
+import {
+  CHANGE_FPS,
+  CHANGE_RELEASE_START,
+  CHANGE_RELEASE_END,
+  CHANGE_MOVE_START,
+  CHANGE_SETTLED,
+  changeDurationFrames,
+  changeMoveWindow,
+  changePhase,
+  type ChangeDirection,
+} from "./changeTiming";
+export type ChangeDemoProps = { changeId: string; direction?: ChangeDirection };
 const point = (p: { string: number; fret: number }) => ({
   x: 75 + p.string * 57,
   y: 100 + (p.fret - 0.5) * 65,
 });
 const compact = (p: ReturnType<typeof fingerPosition>) =>
   p ? `${["E", "A", "D", "G", "B", "e"][p.string]}${p.fret}` : "lift";
-export function ChangeDemo({ changeId }: ChangeDemoProps) {
+export function ChangeDemo({ changeId, direction = "both" }: ChangeDemoProps) {
   const f = useCurrentFrame(),
     { fps } = useVideoConfig(),
-    t = f / fps,
     c = getChange(changeId),
-    back = t >= 8;
+    { back, local } = changePhase(f, direction, fps);
   const source = workshopChord(back ? c.to : c.from),
-    target = workshopChord(back ? c.from : c.to),
-    local = back ? t - 8 : t;
+    target = workshopChord(back ? c.from : c.to);
   const groups = (back ? (c.reverseGroups ?? c.groups) : c.groups)
-    .map(group=>group.filter(finger=>fingerPosition(target,finger)!==null))
-    .filter(group=>group.length>0);
+    .map((group) =>
+      group.filter((finger) => fingerPosition(target, finger) !== null),
+    )
+    .filter((group) => group.length > 0);
+  const names = ["", "index (1)", "middle (2)", "ring (3)", "little (4)"];
+  const anchors = [1, 2, 3, 4].filter((finger) => {
+    const a = fingerPosition(source, finger),
+      b = fingerPosition(target, finger);
+    return a && b && a.string === b.string && a.fret === b.fret;
+  });
+  const guides = (c.slide ?? []).filter((finger) => {
+    const a = fingerPosition(source, finger),
+      b = fingerPosition(target, finger);
+    return a && b && a.string === b.string;
+  });
+  const focusText = back
+    ? `Return to ${chordLabel(c.from)}. Follow the moving fingers and keep the true anchors down.`
+    : c.focus;
+  const stayText = !back
+    ? c.stay
+    : anchors.length
+      ? `Keep ${anchors.map((f) => `${names[f]} on ${compact(fingerPosition(source, f))}`).join(" and ")} in place.`
+      : guides.length
+        ? guides
+            .map(
+              (f) =>
+                `${names[f]} keeps light contact on the ${["low E", "A", "D", "G", "B", "high e"][fingerPosition(source, f)!.string]} string, sliding from fret ${fingerPosition(source, f)!.fret} to ${fingerPosition(target, f)!.fret}. Relax its pressure first.`,
+            )
+            .join(" ")
+        : "No stationary anchor. Release the moving fingertips and follow the groups in the order shown.";
+  const releaseText = back
+    ? (c.back.find((text) => /^(Lift|Release|Move|Return)/.test(text)) ??
+      c.back[0])
+    : c.release;
   const progress = (finger: number) => {
     const a = fingerPosition(source, finger),
       b = fingerPosition(target, finger);
     if (a && b && a.string === b.string && a.fret === b.fret) return 0;
     if (a && !b)
-      return interpolate(local, [1.7, 2.3], [0, 1], {
-        extrapolateLeft: "clamp",
-        extrapolateRight: "clamp",
-      });
+      return interpolate(
+        local,
+        [CHANGE_RELEASE_START, CHANGE_RELEASE_END],
+        [0, 1],
+        {
+          extrapolateLeft: "clamp",
+          extrapolateRight: "clamp",
+        },
+      );
     const group = Math.max(
       0,
       groups.findIndex((g) => g.includes(finger)),
     );
-    const start = 2 + group * 1.65,
-      end = groups.length === 1 ? 4.5 : start + 1.4;
+    const { start, end } = changeMoveWindow(group, groups.length);
     return interpolate(local, [start, end], [0, 1], {
       extrapolateLeft: "clamp",
       extrapolateRight: "clamp",
     });
   };
-  const settled = local >= 5.2;
+  const settled = local >= CHANGE_SETTLED;
   const sounding = settled ? target : source;
-  const activeGroup =
-    local < 2
-      ? []
-      : local >= 5.2
-        ? []
-        : (groups[
-            Math.min(groups.length - 1, Math.floor((local - 2) / 1.65))
-          ] ?? []);
+  const activeGroup = groups.find((_, i) => {
+    const { start, end } = changeMoveWindow(i, groups.length);
+    return local >= start && local <= end;
+  });
   const stage =
-    local < 2
-      ? `Set ${chordLabel(back ? c.to : c.from)}`
-      : settled
-        ? `Check ${chordLabel(back ? c.from : c.to)}`
-        : `Move ${activeGroup.map((x) => ["", "index", "middle", "ring", "little"][x]).join(" + ")}`;
+    local < CHANGE_RELEASE_START
+      ? `Start: ${chordLabel(back ? c.to : c.from)}`
+      : local < CHANGE_MOVE_START
+        ? "Pressure off — keep the anchors"
+        : settled
+          ? `Ready: ${chordLabel(back ? c.from : c.to)}`
+          : activeGroup
+            ? `Move ${activeGroup.map((x) => ["", "index", "middle", "ring", "little"][x]).join(" + ")}`
+            : "Place the moving fingers";
   return (
     <AbsoluteFill
       style={{
@@ -85,7 +129,7 @@ export function ChangeDemo({ changeId }: ChangeDemoProps) {
           color: "#9d879e",
         }}
       >
-        <span>LESSON 7 · INDIVIDUAL CHANGE</span>
+        <span>CHORD CHANGE · QUICK DEMO</span>
         <span>{back ? "RETURN DIRECTION" : "FORWARD DIRECTION"}</span>
       </div>
       <h1 style={{ fontSize: 45, letterSpacing: -1.5, margin: "20px 0 10px" }}>
@@ -109,7 +153,7 @@ export function ChangeDemo({ changeId }: ChangeDemoProps) {
             width="470"
             height="515"
             role="img"
-            aria-label={`${source.name} to ${target.name} finger movement. ${c.focus}`}
+            aria-label={`${source.name} to ${target.name} finger movement. ${focusText}`}
           >
             {Array.from({ length: 6 }, (_, i) => (
               <g key={i}>
@@ -195,7 +239,10 @@ export function ChangeDemo({ changeId }: ChangeDemoProps) {
                   (pb.y - pa.y) * p -
                   (moving && !slide ? Math.sin(p * Math.PI) * 22 : 0);
               const opacity = !a ? p : !b ? 1 - p : 1;
-              const released = !anchor && local>=1.7 && local<5.2;
+              const released =
+                !anchor &&
+                local >= CHANGE_RELEASE_START &&
+                local < CHANGE_SETTLED;
               return (
                 <g key={finger} opacity={opacity}>
                   {!anchor && a && b && (
@@ -260,7 +307,7 @@ export function ChangeDemo({ changeId }: ChangeDemoProps) {
               marginBottom: 24,
             }}
           >
-            {c.focus}
+            {focusText}
           </div>
           <div
             style={{
@@ -280,7 +327,7 @@ export function ChangeDemo({ changeId }: ChangeDemoProps) {
               color: "#7f6e84",
             }}
           >
-            {c.stay}
+            {stayText}
           </p>
           <div
             style={{
@@ -300,7 +347,7 @@ export function ChangeDemo({ changeId }: ChangeDemoProps) {
               color: "#7f6e84",
             }}
           >
-            {c.release}
+            {releaseText}
           </p>
           <div
             style={{
@@ -339,8 +386,8 @@ export function ChangeCompositions() {
       <Composition
         id="Shift-C-Am"
         component={ChangeDemo}
-        durationInFrames={480}
-        fps={30}
+        durationInFrames={changeDurationFrames()}
+        fps={CHANGE_FPS}
         width={1200}
         height={850}
         defaultProps={{ changeId: "C-Am" }}
@@ -348,8 +395,8 @@ export function ChangeCompositions() {
       <Composition
         id="Shift-Am-Em"
         component={ChangeDemo}
-        durationInFrames={480}
-        fps={30}
+        durationInFrames={changeDurationFrames()}
+        fps={CHANGE_FPS}
         width={1200}
         height={850}
         defaultProps={{ changeId: "Am-Em" }}
@@ -357,8 +404,8 @@ export function ChangeCompositions() {
       <Composition
         id="Shift-Em-E"
         component={ChangeDemo}
-        durationInFrames={480}
-        fps={30}
+        durationInFrames={changeDurationFrames()}
+        fps={CHANGE_FPS}
         width={1200}
         height={850}
         defaultProps={{ changeId: "Em-E" }}
@@ -366,8 +413,8 @@ export function ChangeCompositions() {
       <Composition
         id="Shift-C-Fmaj7"
         component={ChangeDemo}
-        durationInFrames={480}
-        fps={30}
+        durationInFrames={changeDurationFrames()}
+        fps={CHANGE_FPS}
         width={1200}
         height={850}
         defaultProps={{ changeId: "C-Fmaj7" }}
@@ -375,8 +422,8 @@ export function ChangeCompositions() {
       <Composition
         id="Shift-A-D"
         component={ChangeDemo}
-        durationInFrames={480}
-        fps={30}
+        durationInFrames={changeDurationFrames()}
+        fps={CHANGE_FPS}
         width={1200}
         height={850}
         defaultProps={{ changeId: "A-D" }}
@@ -384,8 +431,8 @@ export function ChangeCompositions() {
       <Composition
         id="Shift-Fmaj7-G"
         component={ChangeDemo}
-        durationInFrames={480}
-        fps={30}
+        durationInFrames={changeDurationFrames()}
+        fps={CHANGE_FPS}
         width={1200}
         height={850}
         defaultProps={{ changeId: "Fmaj7-G" }}
@@ -393,8 +440,8 @@ export function ChangeCompositions() {
       <Composition
         id="Shift-F-G"
         component={ChangeDemo}
-        durationInFrames={480}
-        fps={30}
+        durationInFrames={changeDurationFrames()}
+        fps={CHANGE_FPS}
         width={1200}
         height={850}
         defaultProps={{ changeId: "F-G" }}
@@ -402,8 +449,8 @@ export function ChangeCompositions() {
       <Composition
         id="Shift-A-Am"
         component={ChangeDemo}
-        durationInFrames={480}
-        fps={30}
+        durationInFrames={changeDurationFrames()}
+        fps={CHANGE_FPS}
         width={1200}
         height={850}
         defaultProps={{ changeId: "A-Am" }}
@@ -411,8 +458,8 @@ export function ChangeCompositions() {
       <Composition
         id="Shift-Fmaj7-Dm"
         component={ChangeDemo}
-        durationInFrames={480}
-        fps={30}
+        durationInFrames={changeDurationFrames()}
+        fps={CHANGE_FPS}
         width={1200}
         height={850}
         defaultProps={{ changeId: "Fmaj7-Dm" }}
@@ -420,8 +467,8 @@ export function ChangeCompositions() {
       <Composition
         id="Shift-C-Dm"
         component={ChangeDemo}
-        durationInFrames={480}
-        fps={30}
+        durationInFrames={changeDurationFrames()}
+        fps={CHANGE_FPS}
         width={1200}
         height={850}
         defaultProps={{ changeId: "C-Dm" }}
@@ -429,8 +476,8 @@ export function ChangeCompositions() {
       <Composition
         id="Shift-G-D"
         component={ChangeDemo}
-        durationInFrames={480}
-        fps={30}
+        durationInFrames={changeDurationFrames()}
+        fps={CHANGE_FPS}
         width={1200}
         height={850}
         defaultProps={{ changeId: "G-D" }}
@@ -438,8 +485,8 @@ export function ChangeCompositions() {
       <Composition
         id="Shift-D-Em"
         component={ChangeDemo}
-        durationInFrames={480}
-        fps={30}
+        durationInFrames={changeDurationFrames()}
+        fps={CHANGE_FPS}
         width={1200}
         height={850}
         defaultProps={{ changeId: "D-Em" }}
@@ -447,8 +494,8 @@ export function ChangeCompositions() {
       <Composition
         id="Shift-F-D"
         component={ChangeDemo}
-        durationInFrames={480}
-        fps={30}
+        durationInFrames={changeDurationFrames()}
+        fps={CHANGE_FPS}
         width={1200}
         height={850}
         defaultProps={{ changeId: "F-D" }}
@@ -456,8 +503,8 @@ export function ChangeCompositions() {
       <Composition
         id="Shift-D-Am"
         component={ChangeDemo}
-        durationInFrames={480}
-        fps={30}
+        durationInFrames={changeDurationFrames()}
+        fps={CHANGE_FPS}
         width={1200}
         height={850}
         defaultProps={{ changeId: "D-Am" }}
@@ -465,8 +512,8 @@ export function ChangeCompositions() {
       <Composition
         id="Shift-D-E"
         component={ChangeDemo}
-        durationInFrames={480}
-        fps={30}
+        durationInFrames={changeDurationFrames()}
+        fps={CHANGE_FPS}
         width={1200}
         height={850}
         defaultProps={{ changeId: "D-E" }}

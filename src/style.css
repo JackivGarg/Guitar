@@ -3254,3 +3254,13 @@ select {
 .chapter-selector {
   scroll-margin-top: 24px;
 }
+
+.reference-library-link {
+  margin: 28px 0 12px;
+  font-size: 12px;
+  color: #705b78;
+}
+.sidebar nav button {
+  padding-top: 12px;
+  padding-bottom: 12px;
+}

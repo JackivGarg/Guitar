@@ -37,6 +37,8 @@ import { SourceVideo } from "./SourceVideo";
 import { BarreExplorer } from "./BarreExplorer";
 import { LessonDemo } from "./TechniqueDemo";
 import { LessonSeven } from "./LessonSeven";
+import { ChangeAtlas } from "./ChangeAtlas";
+import { LearningHome } from "./LearningHome";
 import { ChordDiagram, GuitarArt } from "./visuals";
 import { playChord } from "./sound";
 import { Changes, Fretboard, Metronome, Tuning } from "./Tools";
@@ -49,7 +51,14 @@ import {
   useStored,
   validProgress,
 } from "./state";
-type Page = "today" | "learn" | "chords" | "practice" | "journal";
+type Page =
+  | "today"
+  | "learn"
+  | "changes"
+  | "sources"
+  | "chords"
+  | "practice"
+  | "journal";
 type Sources = Record<
   string,
   {
@@ -70,12 +79,26 @@ function download(name: string, data: string, type = "application/json") {
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
-function readRoute(): { page: Page; lesson: number | null } {
-  const match = location.hash.match(/^#\/lesson\/(10|[1-9])$/);
-  if (match) return { page: "learn", lesson: Number(match[1]) };
-  const page = location.hash.slice(2);
+function readRoute(): { page: Page; lesson: number | null; focus?: string } {
+  const [path, query] = location.hash.slice(1).split("?");
+  const match = path?.match(/^\/lesson\/(10|[1-9])$/);
+  if (match)
+    return {
+      page: "learn",
+      lesson: Number(match[1]),
+      focus: new URLSearchParams(query).get("focus") ?? undefined,
+    };
+  const page = path?.slice(1);
   return {
-    page: ["today", "learn", "chords", "practice", "journal"].includes(page)
+    page: [
+      "today",
+      "learn",
+      "changes",
+      "sources",
+      "chords",
+      "practice",
+      "journal",
+    ].includes(page)
       ? (page as Page)
       : "today",
     lesson: null,
@@ -89,6 +112,9 @@ export default function App() {
   );
   const [page, setPage] = useState<Page>(() => readRoute().page),
     [lessonId, setLessonId] = useState<number | null>(() => readRoute().lesson),
+    [lessonFocus, setLessonFocus] = useState<string | undefined>(
+      () => readRoute().focus,
+    ),
     [mobile, setMobile] = useState(false),
     [toast, setToast] = useState(""),
     [practiceTab, setPracticeTab] = useState("Session");
@@ -122,6 +148,7 @@ export default function App() {
       const route = readRoute();
       setPage(route.page);
       setLessonId(route.lesson);
+      setLessonFocus(route.focus);
       if (route.lesson)
         setProgress((p) => ({ ...p, lastLesson: route.lesson! }));
     };
@@ -137,8 +164,9 @@ export default function App() {
     window.scrollTo({ top: 0 });
     speechSynthesis.cancel();
   };
-  const openLesson = (id: number) => {
-    location.hash = `/lesson/${id}`;
+  const openLesson = (id: number, focus?: string) => {
+    location.hash = `/lesson/${id}${focus ? `?focus=${encodeURIComponent(focus)}` : ""}`;
+    setLessonFocus(focus);
     setLessonId(id);
     setPage("learn");
     setMobile(false);
@@ -170,8 +198,9 @@ export default function App() {
         <nav>
           {(
             [
-              { id: "today", text: "Today", icon: Home },
-              { id: "learn", text: "Learning path", icon: BookOpen },
+              { id: "today", text: "Today’s practice", icon: Home },
+              { id: "learn", text: "Learn a skill", icon: BookOpen },
+              { id: "changes", text: "All chord changes", icon: Guitar },
               { id: "chords", text: "Chord library", icon: Guitar },
               { id: "practice", text: "Practice studio", icon: ListMusic },
               { id: "journal", text: "My progress", icon: NotebookPen },
@@ -184,7 +213,7 @@ export default function App() {
             >
               <n.icon size={19} />
               {n.text}
-              {n.id === "learn" && <span className="nav-count">10</span>}
+              {n.id === "changes" && <span className="nav-count">15</span>}
             </button>
           ))}
         </nav>
@@ -235,8 +264,10 @@ export default function App() {
               {lesson
                 ? `Lesson ${lesson.id}`
                 : {
-                    today: "Today",
-                    learn: "Learning path",
+                    today: "Today’s practice",
+                    learn: "Learn a skill",
+                    changes: "All chord changes",
+                    sources: "Reference library",
                     chords: "Chord library",
                     practice: "Practice studio",
                     journal: "My progress",
@@ -251,223 +282,51 @@ export default function App() {
           </div>
         </header>
         <div className="page-content" key={page + String(lessonId)}>
-          {page === "today" && (
+          {(page === "today" || (page === "learn" && !lesson)) && (
             <>
-              <div className="page-heading">
-                <div>
-                  <div className="eyebrow">MAKE ROOM FOR MUSIC</div>
-                  <h1>Your daily rhythm.</h1>
-                  <p>
-                    A quieter moment. Six strings. A little better than
-                    yesterday.
-                  </p>
-                </div>
-                <div className="date-label">
-                  {new Date().toLocaleDateString("en-IN", {
-                    weekday: "long",
-                    day: "numeric",
-                    month: "long",
-                  })}
-                </div>
-              </div>
-              <div className="dashboard-top">
-                <section className="hero-card">
-                  <div className="hero-copy">
-                    <span className="small-pill">
-                      <Sparkles size={13} /> YOUR NEXT CHAPTER
-                    </span>
-                    <h2>
-                      A little practice.
-                      <br />A lot of <em>progress.</em>
-                    </h2>
-                    <p>
-                      {progress.completed.length === 0
-                        ? "Start with the basics. Build a habit. Make music your own."
-                        : `Keep going with Lesson ${next.id}: ${next.title.toLowerCase()}.`}
-                    </p>
-                    <button
-                      className="primary"
-                      onClick={() => openLesson(next.id)}
-                    >
-                      {progress.completed.length === 0
-                        ? "Begin your journey"
-                        : "Continue learning"}
-                      <ArrowRight size={17} />
-                    </button>
-                    <span className="hero-foot">
-                      At your pace. One clear note at a time.
-                    </span>
-                  </div>
-                  <div className="hero-art">
-                    <GuitarArt />
-                  </div>
-                </section>
-                <section className="card daily-card">
-                  <div className="card-heading">
-                    <h3>Today’s practice</h3>
-                    <span className="tag">{progress.goal} MIN</span>
-                  </div>
-                  <p className="muted small">
-                    A simple plan. A little of everything.
-                  </p>
-                  <div className="daily-items">
-                    {[
-                      {
-                        title: "Tune & settle in",
-                        sub: "Start with six clear strings",
-                        icon: Headphones,
-                      },
-                      {
-                        title: next.title,
-                        sub: `Lesson ${next.id} · learn, then try`,
-                        icon: BookOpen,
-                      },
-                      {
-                        title: "Find your rhythm",
-                        sub: "Slow beats. Smooth changes.",
-                        icon: Music2,
-                      },
-                    ].map((x, i) => (
-                      <button
-                        key={x.title}
-                        onClick={() =>
-                          i === 0
-                            ? practice("Tuning")
-                            : i === 1
-                              ? openLesson(next.id)
-                              : practice("Rhythm")
-                        }
-                      >
-                        <span className={"task-icon task-" + i}>
-                          <x.icon size={18} />
-                        </span>
-                        <div>
-                          <b>{x.title}</b>
-                          <span>{x.sub}</span>
-                        </div>
-                        <ChevronRight size={16} />
-                      </button>
-                    ))}
-                  </div>
-                  <button className="outline wide" onClick={() => practice()}>
-                    Start guided practice <Play size={15} />
-                  </button>
-                </section>
-              </div>
-              <div className="stats-row">
-                <div>
-                  <span className="stat-icon peach">
-                    <Flame size={21} />
-                  </span>
-                  <div>
-                    <strong>
-                      {streak(progress.sessions)}{" "}
-                      <small>
-                        day{streak(progress.sessions) === 1 ? "" : "s"}
-                      </small>
-                    </strong>
-                    <span>Practice streak</span>
-                  </div>
-                </div>
-                <div>
-                  <span className="stat-icon lavender">
-                    <BookOpen size={21} />
-                  </span>
-                  <div>
-                    <strong>
-                      {progress.completed.length}
-                      <small> / 10</small>
-                    </strong>
-                    <span>Lessons completed</span>
-                  </div>
-                </div>
-                <div>
-                  <span className="stat-icon sage">
-                    <Clock size={21} />
-                  </span>
-                  <div>
-                    <strong>
-                      {Math.floor(total / 60)} <small>min</small>
-                    </strong>
-                    <span>Time with your guitar</span>
-                  </div>
-                </div>
-                <div className="stat-last">
-                  <span className="stat-icon sand">
-                    <Target size={21} />
-                  </span>
-                  <div>
-                    <strong>
-                      {progress.scores.length > 0
-                        ? Math.max(
-                            ...progress.scores.map((s) =>
-                              Math.round((s.count * 60) / (s.seconds ?? 60)),
-                            ),
-                          )
-                        : 0}
-                    </strong>
-                    <span>Best changes / minute</span>
-                  </div>
-                </div>
-              </div>
-              <div className="section-title">
-                <div>
-                  <h2>
-                    {progress.completed.length
-                      ? "Keep the music going"
-                      : "Your first steps"}
-                  </h2>
-                  <p>Learn it. See it. Put it under your fingers.</p>
-                </div>
-                <button className="text-button" onClick={() => nav("learn")}>
-                  View learning path <ArrowUpRight size={17} />
-                </button>
-              </div>
-              <div className="lesson-preview-grid">
-                {lessons
-                  .slice(Math.min(next.id - 1, 7), Math.min(next.id - 1, 7) + 3)
-                  .map((l, i) => (
-                    <LessonCard
-                      key={l.id}
-                      lesson={l}
-                      done={progress.completed.includes(l.id)}
-                      onClick={() => openLesson(l.id)}
-                      index={i}
-                    />
-                  ))}
-              </div>
-              <div className="daily-tip">
-                <span>✦</span>
-                <div>
-                  <b>Today’s gentle reminder</b>
-                  <p>
-                    Clean notes come before quick fingers. Slow down until it
-                    sounds good, then build from there.
-                  </p>
-                </div>
-                <button
-                  className="text-button"
-                  onClick={() => practice("Chord changes")}
-                >
-                  Try a slow change <ArrowRight size={16} />
-                </button>
-              </div>
+              <LearningHome
+                variant={page === "today" ? "today" : "learn"}
+                progress={progress}
+                onLesson={openLesson}
+                onPractice={practice}
+                onChanges={() => nav("changes")}
+                onSaveSession={(session) => {
+                  setProgress((p) => ({
+                    ...p,
+                    sessions: [...p.sessions, session],
+                  }));
+                  setToast(
+                    "Practice saved. Come back to the same small steps tomorrow.",
+                  );
+                }}
+              />
+              <button
+                className="text-button reference-library-link"
+                onClick={() => nav("sources")}
+              >
+                <BookOpen size={15} />
+                Reference library · original lessons and transcripts
+                <ArrowUpRight size={14} />
+              </button>
             </>
           )}
-          {page === "learn" && !lesson && (
+          {page === "changes" && (
+            <ChangeAtlas onStudy={(id) => openLesson(7, id)} />
+          )}
+          {page === "sources" && (
             <>
               <PageTitle
-                eyebrow="ONE STEP AT A TIME"
-                title="Your learning path."
-                text="One lesson for each video, numbered 1–10. Follow its chapters in teaching order, practise each exercise, then continue."
+                eyebrow="THE SOURCE BEHIND YOUR PRACTICE"
+                title="Your reference library."
+                text="Full supporting lessons, original videos and your supplied transcripts. Dip into the explanation you need, then return to your guitar."
               />
               <div className="path-banner">
                 <div>
                   <span className="section-label">BEGINNER FOUNDATIONS</span>
-                  <h3>From your first note to your first fill.</h3>
+                  <h3>A deeper explanation, whenever you need it.</h3>
                   <p>
-                    Watch a demonstration → learn one step → play it → check
-                    your understanding.
+                    Your practice is organized by skill. These original lesson
+                    chapters remain available for detail and context.
                   </p>
                 </div>
                 <div className="path-percent">
@@ -524,6 +383,8 @@ export default function App() {
             <LessonView
               key={lesson.id}
               lesson={lesson}
+              focus={lessonFocus}
+              onChanges={() => nav("changes")}
               progress={progress}
               setProgress={setProgress}
               source={sources[lesson.id]}
@@ -532,7 +393,7 @@ export default function App() {
                 setImported((s) => ({ ...s, [lesson.id]: text }));
                 setToast("Transcript saved on this computer.");
               }}
-              onBack={() => nav("learn")}
+              onBack={() => nav("sources")}
               onNext={() => openLesson(Math.min(10, lesson.id + 1))}
               onPractice={practice}
               onChord={() => nav("chords")}
@@ -717,6 +578,8 @@ function LessonCard({
 
 function LessonView({
   lesson: l,
+  focus,
+  onChanges,
   progress,
   setProgress,
   source,
@@ -729,6 +592,8 @@ function LessonView({
   toast,
 }: {
   lesson: Lesson;
+  focus?: string;
+  onChanges: () => void;
   progress: Progress;
   setProgress: (p: Progress | ((p: Progress) => Progress)) => void;
   source: Sources[string];
@@ -757,6 +622,11 @@ function LessonView({
       Number(value) >= 0 &&
       Number(value) < l.steps.length,
   );
+  useEffect(() => {
+    if (!focus || l.id === 7) return;
+    const target = l.steps.findIndex((s) => s.title === focus);
+    if (target >= 0) setStep(target);
+  }, [focus, l.id]);
   const chapter = l.steps[step];
   useEffect(() => {
     setDemoMode(chapter.demo ?? l.mode);
@@ -765,6 +635,11 @@ function LessonView({
     setSpeaking(false);
   }, [step, l.id]);
   const chooseChapter = (i: number) => {
+    history.replaceState(
+      null,
+      "",
+      `#/lesson/${l.id}?focus=${encodeURIComponent(l.steps[i].title)}`,
+    );
     setStep(i);
     speechSynthesis.cancel();
     setSpeaking(false);
@@ -811,6 +686,8 @@ function LessonView({
   if (l.id === 7)
     return (
       <LessonSeven
+        initialChange={focus}
+        onReference={onChanges}
         progress={progress}
         setProgress={setProgress}
         source={source}
@@ -825,7 +702,7 @@ function LessonView({
   return (
     <>
       <button className="text-button back-button" onClick={onBack}>
-        <ArrowLeft size={15} /> All lessons
+        <ArrowLeft size={15} /> Reference library
       </button>
       <div className="lesson-heading">
         <div>
@@ -865,7 +742,8 @@ function LessonView({
             <section className="card lesson-step">
               <div className="chapter-selector">
                 <label htmlFor="chapter-select">
-                  CHAPTER {step + 1} OF {l.steps.length} · IN VIDEO ORDER
+                  GUIDE {step + 1} OF {l.steps.length} · PRACTISE AT YOUR OWN
+                  PACE
                 </label>
                 <select
                   id="chapter-select"
@@ -1240,8 +1118,8 @@ function LessonView({
         </div>
         <aside className="lesson-side">
           <section className="card chapter-outline">
-            <div className="section-label">ONE VIDEO · ONE LESSON</div>
-            <h3>Follow the lesson in order</h3>
+            <div className="section-label">SUPPORTING EXPLANATIONS</div>
+            <h3>Find the detail you need</h3>
             <p>Your chapter position and exercise checks save automatically.</p>
             <ol>
               {l.steps.map((s, i) => (

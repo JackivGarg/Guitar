@@ -851,3 +851,34 @@
 .exercise-title {
   scroll-margin-top: 22px;
 }
+
+.workshop-atlas-link {
+  margin-bottom: 16px;
+}
+.workshop-audio-reference {
+  margin: 0 0 18px;
+  border: 1px solid #e2d9e5;
+  border-radius: 9px;
+  padding: 15px 20px;
+  background: #fffefa;
+}
+.workshop-audio-reference > summary {
+  cursor: pointer;
+  font-size: 12px;
+  color: #71577a;
+}
+.workshop-audio-reference .workshop-audio {
+  margin: 16px 0 0;
+  border: 0;
+  padding: 0;
+}
+.demo-caption {
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.demo-caption select {
+  font-size: 12px;
+}
+.workshop-heading {
+  padding-bottom: 18px;
+}

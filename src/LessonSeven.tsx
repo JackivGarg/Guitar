@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Player, PlayerRef } from "@remotion/player";
 import {
+  BookOpen,
   ArrowLeft,
   ArrowRight,
   Check,
@@ -19,6 +20,12 @@ import {
 import { SourceVideo } from "./SourceVideo";
 import { ChangeDemo } from "./ChangeDemo";
 import {
+  ChangeDirection,
+  CHANGE_FPS,
+  changeDurationFrames,
+  changeCueFrames,
+} from "./changeTiming";
+import {
   changes,
   drillBlocks,
   getChange,
@@ -34,6 +41,8 @@ import { openMidi } from "./course";
 import { dayKey, Progress, useStored } from "./state";
 type Source = { filename: string; segments: { start: number; text: string }[] };
 type Props = {
+  initialChange?: string;
+  onReference?: () => void;
   progress: Progress;
   setProgress: (p: Progress | ((p: Progress) => Progress)) => void;
   source?: Source;
@@ -55,6 +64,8 @@ function hear(name: string) {
   });
 }
 export function LessonSeven({
+  initialChange,
+  onReference,
   progress,
   setProgress,
   source,
@@ -75,15 +86,41 @@ export function LessonSeven({
     block.pairs.includes(location.pair) ? location.pair : block.pairs[0],
   );
   const [view, setView] = useState<"workshop" | "source" | "check">("workshop"),
-    [rate, setRate] = useState(0.75),
+    [rate, setRate] = useState(1),
+    [direction, setDirection] = useState<ChangeDirection>("forward"),
     [audioRate, setAudioRate] = useState(1),
     [loop, setLoop] = useState(false),
     [audioRange, setAudioRange] = useState([0, 1843]),
     [query, setQuery] = useState(""),
     [step, setStep] = useState(0);
+  useEffect(() => {
+    if (!initialChange || !changes.some((c) => c.id === initialChange)) return;
+    const b = drillBlocks.find((b) => b.pairs.includes(initialChange));
+    if (b) {
+      setLocation({ block: b.id, pair: initialChange });
+      setView("workshop");
+      setStep(0);
+    }
+  }, [initialChange]);
+  const activeGroups = (
+    direction === "back"
+      ? (current.reverseGroups ?? current.groups)
+      : current.groups
+  )
+    .map((g) =>
+      g.filter((f) =>
+        fingerPosition(
+          workshopChord(direction === "back" ? current.from : current.to),
+          f,
+        ),
+      ),
+    )
+    .filter((g) => g.length);
+  const cues = changeCueFrames(activeGroups.length, direction);
   const player = useRef<PlayerRef>(null),
     audio = useRef<HTMLAudioElement>(null),
-    importInput = useRef<HTMLInputElement>(null);
+    importInput = useRef<HTMLInputElement>(null),
+    audioReference = useRef<HTMLDetailsElement>(null);
   const finished = drillBlocks.filter(
     (b) => progress.checks[`7-block-${b.id}`],
   ).length;
@@ -92,6 +129,11 @@ export function LessonSeven({
     workshopQuiz.every((_, i) => progress.checks[`7-understanding-${i}`]);
   const choose = (id: number) => {
     const b = drillBlocks.find((b) => b.id === id)!;
+    history.replaceState(
+      null,
+      "",
+      `#/lesson/7?focus=${encodeURIComponent(b.pairs[0])}`,
+    );
     setLocation({ block: id, pair: b.pairs[0] });
     setView("workshop");
     setStep(0);
@@ -102,12 +144,18 @@ export function LessonSeven({
     );
   };
   const choosePair = (id: string) => {
+    history.replaceState(
+      null,
+      "",
+      `#/lesson/7?focus=${encodeURIComponent(id)}`,
+    );
     setLocation((l) => ({ ...l, pair: id }));
     setStep(0);
   };
   const check = (key: string, value: boolean) =>
     setProgress((p) => ({ ...p, checks: { ...p.checks, [key]: value } }));
   const listen = (start: number, end: number) => {
+    if (audioReference.current) audioReference.current.open = true;
     setAudioRange([start, end]);
     if (audio.current) {
       audio.current.currentTime = start;
@@ -145,30 +193,35 @@ export function LessonSeven({
   return (
     <>
       <button className="text-button back-button" onClick={onBack}>
-        <ArrowLeft size={15} /> Learning path
+        <ArrowLeft size={15} /> Reference library
       </button>
       <div className="workshop-heading">
-        <div className="eyebrow">
-          LESSON 07 · THE COMPLETE CHORD-CHANGE WORKSHOP
-        </div>
+        <div className="eyebrow">CHORD-CHANGE COACH · EXACT FINGER ROUTES</div>
         <h1>
-          Learn the movement.
+          Make the change.
           <br />
-          <em>Then make it effortless.</em>
+          <em>Keep the music moving.</em>
         </h1>
         <p>
-          Every exercise, every finger route, both directions. Work through the
-          blocks across several sessions; there is no need to finish today.
+          Learn a finger route, check the shape, then repeat it with your
+          guitar. Choose the change you need today; use the visual sheet once
+          you know the movements.
         </p>
         <div className="workshop-metadata">
           <span>{drillBlocks.length} practice blocks</span>
           <span>{changes.length} separate change clips</span>
-          <span>31-minute original audio</span>
+          <span>Quick replay · 3 seconds each way</span>
           <span>
             {finished}/{drillBlocks.length} blocks complete
           </span>
         </div>
       </div>
+      {onReference && (
+        <button className="secondary workshop-atlas-link" onClick={onReference}>
+          <BookOpen size={16} />
+          See all 15 changes together · visual reference
+        </button>
+      )}
       <button
         className="primary workshop-resume"
         onClick={() => {
@@ -184,80 +237,92 @@ export function LessonSeven({
         <ArrowRight size={16} />
       </button>
       <SourceVideo lesson={7} start={block.start} />
-      <section className="workshop-audio card">
-        <div>
-          <Headphones size={20} />
+      <details
+        className="workshop-audio-reference"
+        ref={audioReference}
+        onToggle={(e) => {
+          if (!e.currentTarget.open) audio.current?.pause();
+        }}
+      >
+        <summary>
+          Original audio reference · optional explanation and looping
+        </summary>
+        <section className="workshop-audio card">
           <div>
-            <b>The full original Lesson 7 audio</b>
-            <p>
-              Nothing is shortened. Exercise buttons jump to the relevant
-              explanation.
-            </p>
+            <Headphones size={20} />
+            <div>
+              <b>The full original Lesson 7 audio</b>
+              <p>
+                Nothing is shortened. Exercise buttons jump to the relevant
+                explanation.
+              </p>
+            </div>
           </div>
-        </div>
-        <audio
-          ref={audio}
-          controls
-          preload="metadata"
-          src="/lesson-07.mp3"
-          onTimeUpdate={() => {
-            if (
-              loop &&
-              audio.current &&
-              audio.current.currentTime >= audioRange[1]
-            )
-              audio.current.currentTime = audioRange[0];
-          }}
-        />
-        <div className="audio-options">
-          <label>
-            Voice speed
-            <select
-              aria-label="Original audio speed"
-              value={audioRate}
-              onChange={(e) => {
-                setAudioRate(+e.target.value);
-                if (audio.current) audio.current.playbackRate = +e.target.value;
+          <audio
+            ref={audio}
+            controls
+            preload="metadata"
+            src="/lesson-07.mp3"
+            onTimeUpdate={() => {
+              if (
+                loop &&
+                audio.current &&
+                audio.current.currentTime >= audioRange[1]
+              )
+                audio.current.currentTime = audioRange[0];
+            }}
+          />
+          <div className="audio-options">
+            <label>
+              Voice speed
+              <select
+                aria-label="Original audio speed"
+                value={audioRate}
+                onChange={(e) => {
+                  setAudioRate(+e.target.value);
+                  if (audio.current)
+                    audio.current.playbackRate = +e.target.value;
+                }}
+              >
+                {[0.5, 0.75, 1, 1.25].map((r) => (
+                  <option key={r} value={r}>
+                    {r}×
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label>
+              <input
+                type="checkbox"
+                checked={loop}
+                onChange={(e) => setLoop(e.target.checked)}
+              />{" "}
+              Loop selected explanation
+            </label>
+            <button
+              className="text-button"
+              onClick={() => {
+                setLoop(false);
+                listen(0, 1843);
               }}
             >
-              {[0.5, 0.75, 1, 1.25].map((r) => (
-                <option key={r} value={r}>
-                  {r}×
-                </option>
-              ))}
-            </select>
-          </label>
-          <label>
-            <input
-              type="checkbox"
-              checked={loop}
-              onChange={(e) => setLoop(e.target.checked)}
-            />{" "}
-            Loop selected explanation
-          </label>
-          <button
-            className="text-button"
-            onClick={() => {
-              setLoop(false);
-              listen(0, 1843);
-            }}
-          >
-            Play from beginning
-          </button>
-        </div>
-        {loop && (
-          <span className="micro">
-            Loop: {time(audioRange[0])}–{time(audioRange[1])}. Audio continues
-            normally when looping is off.
-          </span>
-        )}
-      </section>
+              Play from beginning
+            </button>
+          </div>
+          {loop && (
+            <span className="micro">
+              Loop: {time(audioRange[0])}–{time(audioRange[1])}. Audio continues
+              normally when looping is off.
+            </span>
+          )}
+        </section>
+      </details>
       <div className="workshop-top-tabs tabs">
         {(
           [
-            { id: "workshop", label: "Exercise workshop" },
-            { id: "source", label: "Full supplied transcript" },
-            { id: "check", label: "Finish & understanding check" },
+            { id: "workshop", label: "Learn & practise" },
+            { id: "source", label: "Source reference" },
+            { id: "check", label: "Check your technique" },
           ] as const
         ).map((t) => (
           <button
@@ -272,8 +337,11 @@ export function LessonSeven({
       {view === "workshop" && (
         <div className="workshop-layout">
           <aside className="exercise-outline">
-            <div className="section-label">FOLLOW THE WHOLE LESSON</div>
-            <p>Move through every block. Return whenever you need to.</p>
+            <div className="section-label">PRACTICE GROUPS</div>
+            <p>
+              Pick a route to learn. Practise the changes you need; return to
+              the rest later.
+            </p>
             {drillBlocks.map((b) => (
               <button
                 className={block.id === b.id ? "current" : ""}
@@ -339,9 +407,7 @@ export function LessonSeven({
               </button>
             </div>
             <div className="separate-clips">
-              <div className="section-label">
-                A SEPARATE CLIP FOR EACH CHANGE
-              </div>
+              <div className="section-label">CHOOSE A CHANGE IN THIS GROUP</div>
               <div className="change-tabs">
                 {block.pairs.map((id) => {
                   const c = getChange(id);
@@ -361,11 +427,11 @@ export function LessonSeven({
             <div className="demo-wrapper">
               <Player
                 ref={player}
-                key={current.id}
+                key={`${current.id}-${direction}`}
                 component={ChangeDemo}
-                inputProps={{ changeId: current.id }}
-                durationInFrames={480}
-                fps={30}
+                inputProps={{ changeId: current.id, direction }}
+                durationInFrames={changeDurationFrames(direction)}
+                fps={CHANGE_FPS}
                 compositionWidth={1200}
                 compositionHeight={850}
                 controls
@@ -375,7 +441,30 @@ export function LessonSeven({
                 style={{ width: "100%" }}
               />
               <div className="demo-caption">
-                <span>Separate 16-second clip · forward, then return</span>
+                <span>
+                  {direction === "both"
+                    ? "6-second round trip"
+                    : "3-second movement"}{" "}
+                  · pause for detail
+                </span>
+                <label>
+                  Direction
+                  <select
+                    aria-label="Change direction"
+                    value={direction}
+                    onChange={(e) =>
+                      setDirection(e.target.value as ChangeDirection)
+                    }
+                  >
+                    <option value="forward">
+                      {chordLabel(current.from)} → {chordLabel(current.to)}
+                    </option>
+                    <option value="back">
+                      {chordLabel(current.to)} → {chordLabel(current.from)}
+                    </option>
+                    <option value="both">Both ways</option>
+                  </select>
+                </label>
                 <label>
                   Animation speed
                   <select
@@ -385,17 +474,31 @@ export function LessonSeven({
                   >
                     <option value="0.5">0.5×</option>
                     <option value="0.75">0.75×</option>
+                    <option value="1.5">1.5×</option>
+                    <option value="2">2×</option>
                     <option value="1">1×</option>
                   </select>
                 </label>
               </div>
               <div className="demo-seek">
-                <span>Look closely:</span>
-                <button onClick={() => seekDemo(0)}>Start shape</button>
-                <button onClick={() => seekDemo(90)}>First movement</button>
-                <button onClick={() => seekDemo(132)}>Next movement</button>
-                <button onClick={() => seekDemo(195)}>Target shape</button>
-                <button onClick={() => seekDemo(360)}>Return</button>
+                <span>Freeze the detail:</span>
+                <button onClick={() => seekDemo(cues.start)}>
+                  Start shape
+                </button>
+                <button onClick={() => seekDemo(cues.release)}>
+                  Pressure off
+                </button>
+                {cues.movements.map((frame, i) => (
+                  <button key={i} onClick={() => seekDemo(frame)}>
+                    Movement {i + 1}
+                  </button>
+                ))}
+                <button onClick={() => seekDemo(cues.target)}>
+                  Target shape
+                </button>
+                {direction === "both" && (
+                  <button onClick={() => seekDemo(cues.return)}>Return</button>
+                )}
               </div>
             </div>
             <section className="card movement-card">

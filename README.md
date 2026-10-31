@@ -24,13 +24,17 @@ Course source: [Acoustic Pahadi's beginner guitar playlist](https://www.youtube.
 
 Diagrams use the standard right-handed front view: low E on the left, high e on the right. Audio examples are synthesized reference tones. Chord-change counts and completion checks are self-assessed, not automatic performance grading.
 
-## Learn one video at a time
+## Practice first; use the sources when needed
 
-Each numbered lesson contains its matching original video, a source-ordered chapter list, English instructions, a diagram or Remotion demonstration, an exercise, and saved self-checks. Original videos load from YouTube on demand and need internet. Chapter links are approximate source positions; use the full source for context. All bundled teaching diagrams and practice tools run locally.
+The app opens on **Today’s practice**: a ten-minute routine for a clear chord, a precise change, steady rhythm, then a progression. **Learn a skill** gives targeted exercises without requiring lesson completion. The play-along has a four-beat count-in, adjustable 35–80 BPM, one or two bars per chord, current/next chord cues, reference tones and a metronome. Guided-routine drafts save per day; only actual timed practice is logged, and skipping does not invent practice time.
+
+**All chord changes** shows all fifteen complete start → movement → finish image references together, with fixed anchors, light-contact slides and lift instructions. Enlarge or save an individual image, save all fifteen as one SVG sheet, or print the reference. The detailed coach retains the same source-checked finger routes and full exercise blocks. Quick animations now take three seconds per direction (six seconds for both directions), default to 1×, and have direction, speed and freeze-frame controls.
+
+The **Reference library** holds the original numbered lesson chapters, videos, supplied transcripts and full Lesson 7 audio. Those support skill practice rather than setting its required order. Original videos load from YouTube on demand and need internet. Chapter links are approximate source positions; use the full source for context. Bundled teaching diagrams and practice tools run locally. Existing lesson progress is preserved.
 
 The supplied material is expanded into 9 chapters for Lesson 2, 11 for Lesson 3, 25 for Lesson 4, 10 for Lesson 5, 9 for Lesson 6, 10 for Lesson 8 and 15 for Lesson 9. Lessons 1 and 10 remain clearly labeled supplementary guides. A guide is an authored teaching aid, not a word-for-word translation.
 
-Lesson 7 has a dedicated 11-block workshop, 15 separately selectable forward/return chord-change clips, exact finger maps, fixed anchors versus light-contact guide slides, guided movement steps, common mistakes, per-block practice timers and checks, plus the full supplied audio with speed and range looping. The small four-string F, Fmaj7 and full F barre are distinct. Source diagrams and difficult finger routes were checked against the original video.
+Lesson 7 has a dedicated 11-block workshop, 15 separately selectable quick forward/return chord-change clips, exact finger maps, fixed anchors versus light-contact guide slides, guided movement steps, common mistakes, per-block practice timers and checks, plus the full supplied audio with speed and range looping. The small four-string F, Fmaj7 and full F barre are distinct. Source diagrams and difficult finger routes were checked against the original video.
 
 Lessons 5, 6 and 9 include an interactive E/A-family major/minor barre explorer: it separates the root/barre fret from the higher-finger frets, supports sharp/flat naming, and plays reference notes. Lesson 4 separates the basic seven-stroke and folk patterns. Lesson 8 separately demonstrates picking-hand chuck, bridge damping, and fretting-pressure release with contact retained.
 
@@ -38,4 +42,4 @@ The desktop shortcut is installed by `install-desktop.ps1`. It launches the loop
 
 ## Validation
 
-`npm test` verifies chord pitch classes, all E/A major/minor movable positions at frets 1–12, chapter ordering and key technique coverage, and the Lesson 7 anchors and slides. Run `$env:SIX_STRINGS_INTEGRATION='1'; npm test` in PowerShell with the local server running to include asset serving, audio byte ranges and request boundary checks. `npm run build` checks TypeScript and creates the installed app bundle.
+`npm test` verifies quick movement timing, count-in and progression boundaries, guided routine timing, SVG reference coverage and pressure instructions, chord pitch classes, all E/A major/minor movable positions at frets 1–12, chapter ordering and key technique coverage, and the Lesson 7 anchors and slides. Run `$env:SIX_STRINGS_INTEGRATION='1'; npm test` in PowerShell with the local server running to include asset serving, audio byte ranges and request boundary checks. `npm run build` checks TypeScript and creates the installed app bundle.
