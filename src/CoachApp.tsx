@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import {
   ArrowLeft,
   ArrowUpRight,
@@ -12,15 +12,33 @@ import {
   SlidersHorizontal,
   X,
 } from "lucide-react";
-import { PracticeDesk } from "./PracticeDesk";
-import { ReferenceRoom } from "./ReferenceRoom";
-import { JamRoom } from "./JamRoom";
-import {
-  ChordLibrary,
-  LessonView,
-  ProgressPage,
-  type Sources,
-} from "./LegacyLibrary";
+const PracticeDesk = lazy(() =>
+  import("./PracticeDesk").then((m) => ({ default: m.PracticeDesk })),
+);
+const ReferenceRoom = lazy(() =>
+  import("./ReferenceRoom").then((m) => ({ default: m.ReferenceRoom })),
+);
+const JamRoom = lazy(() =>
+  import("./JamRoom").then((m) => ({ default: m.JamRoom })),
+);
+const GuitarJourney = lazy(() =>
+  import("./journey/GuitarJourney").then((m) => ({ default: m.GuitarJourney })),
+);
+const FoundationsPath = lazy(() =>
+  import("./foundations/FoundationsPath").then((m) => ({
+    default: m.FoundationsPath,
+  })),
+);
+import type { Sources } from "./LegacyLibrary";
+const ChordLibrary = lazy(() =>
+  import("./LegacyLibrary").then((m) => ({ default: m.ChordLibrary })),
+);
+const LessonView = lazy(() =>
+  import("./LegacyLibrary").then((m) => ({ default: m.LessonView })),
+);
+const ProgressPage = lazy(() =>
+  import("./LegacyLibrary").then((m) => ({ default: m.ProgressPage })),
+);
 import { Fretboard, Metronome, Tuning } from "./Tools";
 import { lessons } from "./learningPath";
 import {
@@ -33,6 +51,7 @@ import {
 } from "./state";
 import { coachRoute, type CoachPage, type CoachRoute } from "./coachRoute";
 import "./coach-app.css";
+import "./resonance.css";
 type Tool = "tuning" | "rhythm" | "fretboard" | "chords";
 export default function CoachApp() {
   const [progress, setProgress, storageError] = useStored<Progress>(
@@ -101,33 +120,41 @@ export default function CoachApp() {
     setToast("Practice saved. Your next visit starts from here.");
   };
   const lesson = lessons.find((l) => l.id === route.lesson);
-  const mainPage = ["desk", "jam", "reference"].includes(route.page)
+  const mainPage = [
+    "journey",
+    "foundations",
+    "desk",
+    "jam",
+    "reference",
+  ].includes(route.page)
     ? route.page
     : null;
   return (
-    <div className="coach-app">
+    <div
+      className={`coach-app resonance-app ${route.page === "journey" ? "resonance-journey" : ""}`}
+    >
       <header className="coach-header">
         <a
           className="coach-brand"
-          href="#/desk"
+          href="#/journey"
           onClick={(e) => {
             e.preventDefault();
-            go("desk");
+            go("journey");
           }}
         >
           <span>
             <Guitar size={23} />
           </span>
-          <b>
-            six strings<small>YOUR GUITAR WORKSPACE</small>
-          </b>
+          <b>six strings</b>
         </a>
         <nav aria-label="Main workspace">
           {(
             [
-              { id: "desk", label: "Practice desk", icon: Guitar },
+              { id: "journey", label: "Explore", icon: Guitar },
+              { id: "foundations", label: "Foundations", icon: BookOpen },
+              { id: "desk", label: "Practice", icon: Guitar },
               { id: "jam", label: "Play along", icon: Music2 },
-              { id: "reference", label: "Visual reference", icon: BookOpen },
+              { id: "reference", label: "Reference", icon: BookOpen },
             ] as const
           ).map((item) => (
             <button
@@ -159,120 +186,155 @@ export default function CoachApp() {
           </button>
         </div>
       </header>
-      <div className="coach-context">
-        <span>
-          {route.page === "desk"
-            ? "LEARN A MOVEMENT → REPEAT IT → USE IT IN MUSIC"
-            : route.page === "jam"
-              ? "FOLLOW THE PULSE. PREPARE THE NEXT CHORD."
-              : route.page === "reference"
-                ? "KEEP EVERY CHANGE WITHIN REACH."
-                : "YOUR SUPPORTING MATERIAL"}
-        </span>
-        <button onClick={() => go("library")}>
-          <Headphones size={13} />
-          Source library
-          <ArrowUpRight size={12} />
-        </button>
-      </div>
+      {route.page !== "journey" && (
+        <div className="coach-context">
+          <span>
+            {route.page === "desk"
+              ? "LEARN A MOVEMENT → REPEAT IT → USE IT IN MUSIC"
+              : route.page === "jam"
+                ? "FOLLOW THE PULSE. PREPARE THE NEXT CHORD."
+                : route.page === "reference"
+                  ? "KEEP EVERY CHANGE WITHIN REACH."
+                  : "YOUR SUPPORTING MATERIAL"}
+          </span>
+          <button onClick={() => go("library")}>
+            <Headphones size={13} />
+            Source library
+            <ArrowUpRight size={12} />
+          </button>
+        </div>
+      )}
       <main className={`coach-main coach-page-${route.page}`}>
-        {route.page === "desk" && (
-          <PracticeDesk
-            progress={progress}
-            setProgress={setProgress}
-            initialChange={route.change}
-            onReference={() => go("reference")}
-            onGuide={guide}
-            onTool={setTool}
-            onJam={() => go("jam")}
-            suspended={tool !== null}
-          />
-        )}
-        {route.page === "jam" && (
-          <JamRoom
-            progress={progress}
-            onSaveSession={save}
-            onReference={() => go("reference")}
-            onChange={study}
-            suspended={tool !== null}
-          />
-        )}
-        {route.page === "reference" && (
-          <ReferenceRoom onStudy={study} onGuide={guide} onTool={setTool} />
-        )}
-        {route.page === "library" && (
-          <section className="coach-library">
-            <div className="coach-library-heading">
-              <span>LOOK SOMETHING UP</span>
-              <h1>The source library.</h1>
-              <p>
-                Your full lessons and transcripts are here whenever an
-                explanation needs more context. Choose what you need and return
-                to practice.
-              </p>
+        <Suspense
+          fallback={
+            <div className="resonance-loading" role="status">
+              <Guitar size={32} />
+              <h1>A little practice. A stronger foundation.</h1>
+              <p>Opening your guitar workspace…</p>
             </div>
-            <div className="coach-library-grid">
-              {lessons.map((l) => (
-                <button
-                  className="coach-source-card"
-                  key={l.id}
-                  onClick={() => guide(l.id)}
-                >
-                  <span>ORIGINAL LESSON {String(l.id).padStart(2, "0")}</span>
-                  <h2>{l.title}</h2>
-                  <p>{l.description}</p>
-                  <small>
-                    {l.id === 7
-                      ? "15 exact finger routes + full audio"
-                      : `${l.steps.length} supporting explanations`}{" "}
-                    ·{" "}
-                    {sources[l.id] || imported[l.id]
-                      ? "source included"
-                      : "supplementary guide"}
-                  </small>
-                  <ArrowUpRight size={18} />
-                </button>
-              ))}
-            </div>
-          </section>
-        )}
-        {route.page === "guide" && lesson && (
-          <section className="coach-guide">
-            <LessonView
-              key={lesson.id}
-              lesson={lesson}
-              focus={route.focus}
-              onChanges={() => go("reference")}
+          }
+        >
+          {route.page === "journey" && (
+            <GuitarJourney
+              progress={progress}
+              onPractice={(id) =>
+                id
+                  ? study(id)
+                  : progress.sessions.length || progress.completed.length
+                    ? go("desk")
+                    : study("setup-posture")
+              }
+              onFoundations={() => go("foundations")}
+              onReference={() => go("reference")}
+            />
+          )}
+          {route.page === "foundations" && (
+            <FoundationsPath
               progress={progress}
               setProgress={setProgress}
-              source={sources[lesson.id]}
-              imported={imported[lesson.id]}
-              onImport={(text) => {
-                setImported((p) => ({ ...p, [lesson.id]: text }));
-                setToast("Transcript saved locally.");
-              }}
-              onBack={() => go("library")}
-              onNext={() => guide(Math.min(10, lesson.id + 1))}
-              onPractice={() => go("desk")}
-              onChord={() => setTool("chords")}
-              toast={setToast}
+              onPractice={study}
+              onJam={() => go("jam")}
+              onTool={setTool}
+              onGuide={guide}
             />
-          </section>
-        )}
-        {route.page === "progress" && (
-          <section className="coach-progress">
-            <button className="text-button" onClick={() => go("desk")}>
-              <ArrowLeft size={15} />
-              Back to my guitar
-            </button>
-            <ProgressPage
+          )}
+          {route.page === "desk" && (
+            <PracticeDesk
               progress={progress}
               setProgress={setProgress}
-              openLesson={guide}
-              toast={setToast}
+              initialChange={route.change}
+              onReference={() => go("reference")}
+              onGuide={guide}
+              onTool={setTool}
+              onJam={() => go("jam")}
+              suspended={tool !== null}
             />
-          </section>
-        )}
+          )}
+          {route.page === "jam" && (
+            <JamRoom
+              progress={progress}
+              onSaveSession={save}
+              onReference={() => go("reference")}
+              onChange={study}
+              suspended={tool !== null}
+            />
+          )}
+          {route.page === "reference" && (
+            <ReferenceRoom onStudy={study} onGuide={guide} onTool={setTool} />
+          )}
+          {route.page === "library" && (
+            <section className="coach-library">
+              <div className="coach-library-heading">
+                <h1>The source library.</h1>
+                <p>
+                  Your full lessons and transcripts are here whenever an
+                  explanation needs more context. Choose what you need and
+                  return to practice.
+                </p>
+              </div>
+              <div className="coach-library-grid">
+                {lessons.map((l) => (
+                  <button
+                    className="coach-source-card"
+                    key={l.id}
+                    onClick={() => guide(l.id)}
+                  >
+                    <span>ORIGINAL LESSON {String(l.id).padStart(2, "0")}</span>
+                    <h2>{l.title}</h2>
+                    <p>{l.description}</p>
+                    <small>
+                      {l.id === 7
+                        ? "15 exact finger routes + full audio"
+                        : `${l.steps.length} supporting explanations`}{" "}
+                      ·{" "}
+                      {sources[l.id] || imported[l.id]
+                        ? "source included"
+                        : "supplementary guide"}
+                    </small>
+                    <ArrowUpRight size={18} />
+                  </button>
+                ))}
+              </div>
+            </section>
+          )}
+          {route.page === "guide" && lesson && (
+            <section className="coach-guide">
+              <LessonView
+                key={lesson.id}
+                lesson={lesson}
+                focus={route.focus}
+                onChanges={() => go("reference")}
+                progress={progress}
+                setProgress={setProgress}
+                source={sources[lesson.id]}
+                imported={imported[lesson.id]}
+                onImport={(text) => {
+                  setImported((p) => ({ ...p, [lesson.id]: text }));
+                  setToast("Transcript saved locally.");
+                }}
+                onBack={() => go("library")}
+                onNext={() => guide(Math.min(10, lesson.id + 1))}
+                onPractice={() => go("desk")}
+                onChord={() => setTool("chords")}
+                toast={setToast}
+              />
+            </section>
+          )}
+          {route.page === "progress" && (
+            <section className="coach-progress">
+              <button className="text-button" onClick={() => go("desk")}>
+                <ArrowLeft size={15} />
+                Back to my guitar
+              </button>
+              <ProgressPage
+                progress={progress}
+                setProgress={setProgress}
+                openLesson={guide}
+                toast={setToast}
+              />
+            </section>
+          )}
+        </Suspense>
       </main>
       <dialog
         ref={toolsDialog}

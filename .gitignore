@@ -13,3 +13,6 @@ public/lesson-07.mp3
 *.log
 *.local.json
 .server.pid
+
+# Local design reference downloads; provenance URLs are documented.
+.impeccable/references/

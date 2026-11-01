@@ -4,20 +4,15 @@ import {
   ArrowUpRight,
   ArrowRight,
   ArrowLeft,
-  BookOpen,
   Check,
-  CheckCircle2,
   ChevronRight,
   Clock,
   Download,
   Guitar,
   NotebookPen,
-  Pause,
-  Play,
   Search,
   Upload,
   Volume2,
-  X,
 } from "lucide-react";
 import { chords, getChord, Lesson } from "./course";
 import { lessons, videoIds } from "./learningPath";
@@ -31,7 +26,6 @@ import { Fretboard } from "./Tools";
 import {
   dayKey,
   Progress,
-  Session,
   streak,
   useStored,
   validProgress,

@@ -1,4 +1,6 @@
 export type CoachPage =
+  | "journey"
+  | "foundations"
   | "desk"
   | "jam"
   | "reference"
@@ -21,6 +23,8 @@ export function coachRoute(hash: string): CoachRoute {
       lesson: Number(match[1]),
       focus: params.get("focus") ?? undefined,
     };
+  if (["", "/", "/journey"].includes(path)) return { page: "journey" };
+  if (["/foundations", "/learn"].includes(path)) return { page: "foundations" };
   if (path === "/jam") return { page: "jam" };
   if (["/reference", "/changes", "/chords"].includes(path))
     return { page: "reference" };

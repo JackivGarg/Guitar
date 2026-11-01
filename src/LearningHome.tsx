@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from "react";
 import {
   ArrowRight,
   Check,
-  Guitar,
   Pause,
   Play,
   RotateCcw,
@@ -280,7 +279,6 @@ function validDraft(x: unknown): x is RoutineDraft {
 }
 function GuidedRoutine({
   onLesson,
-  onChanges,
   onPractice,
   onSaveSession,
 }: Omit<LearningHomeProps, "progress" | "variant">) {

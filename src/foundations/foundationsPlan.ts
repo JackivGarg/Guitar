@@ -522,23 +522,66 @@ export function foundationRating(progress: FoundationProgress, id: string) {
     (r) => progress.checks[`desk-rating-${id}-${r}`],
   );
 }
-export const foundationChecked = (progress: FoundationProgress, id: string) =>
-  !!progress.checks[foundationCheckpointKey(id)] ||
-  foundationRating(progress, id) === "comfortable";
-export function markFoundationCheckpoint<T extends FoundationProgress>(progress:T,id:string,checked:boolean,today:string):T {
-  return {...progress,checks:{...progress.checks,[foundationCheckpointKey(id)]:checked},notes:checked?{...progress.notes,[foundationReviewKey(id)]:today}:progress.notes};
+export function foundationChecked(progress: FoundationProgress, id: string) {
+  const key = foundationCheckpointKey(id);
+  if (Object.prototype.hasOwnProperty.call(progress.checks, key))
+    return progress.checks[key];
+  return foundationRating(progress, id) === "comfortable";
 }
-export function markFoundationReview<T extends FoundationProgress>(progress:T,id:string,today:string):T {
-  return {...progress,notes:{...progress.notes,[foundationReviewKey(id)]:today}};
+export type FoundationRating = "needs" | "growing" | "comfortable";
+export function recordFoundationRating<T extends FoundationProgress>(
+  progress: T,
+  id: string,
+  rating: FoundationRating,
+  today: string,
+): T {
+  const checks = { ...progress.checks };
+  delete checks[foundationCheckpointKey(id)];
+  for (const value of ["needs", "growing", "comfortable"] as const)
+    checks[`desk-rating-${id}-${value}`] = value === rating;
+  return {
+    ...progress,
+    checks,
+    notes: { ...progress.notes, [foundationReviewKey(id)]: today },
+  };
+}
+export function markFoundationCheckpoint<T extends FoundationProgress>(
+  progress: T,
+  id: string,
+  checked: boolean,
+  today: string,
+): T {
+  return {
+    ...progress,
+    checks: { ...progress.checks, [foundationCheckpointKey(id)]: checked },
+    notes: checked
+      ? { ...progress.notes, [foundationReviewKey(id)]: today }
+      : progress.notes,
+  };
+}
+export function markFoundationReview<T extends FoundationProgress>(
+  progress: T,
+  id: string,
+  today: string,
+): T {
+  return {
+    ...progress,
+    notes: { ...progress.notes, [foundationReviewKey(id)]: today },
+  };
 }
 const dayDistance = (from: string, to: string) => {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(from) || !/^\d{4}-\d{2}-\d{2}$/.test(to))
     return NaN;
-  const a=Date.parse(from+'T00:00:00Z'),b=Date.parse(to+'T00:00:00Z');
-  if(!Number.isFinite(a)||!Number.isFinite(b)||new Date(a).toISOString().slice(0,10)!==from||new Date(b).toISOString().slice(0,10)!==to)return NaN;
-  return (
-    (b-a) / 86400000
-  );
+  const a = Date.parse(from + "T00:00:00Z"),
+    b = Date.parse(to + "T00:00:00Z");
+  if (
+    !Number.isFinite(a) ||
+    !Number.isFinite(b) ||
+    new Date(a).toISOString().slice(0, 10) !== from ||
+    new Date(b).toISOString().slice(0, 10) !== to
+  )
+    return NaN;
+  return (b - a) / 86400000;
 };
 export function foundationReviews(progress: FoundationProgress, today: string) {
   return foundationChecks.filter((c) => {

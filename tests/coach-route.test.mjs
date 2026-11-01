@@ -10,7 +10,11 @@ const { coachRoute } = await import(
   "data:text/javascript;base64," + Buffer.from(code).toString("base64")
 );
 test("Desktop and older links open the new workspaces while preserving source guide links", () => {
-  for (const hash of ["", "#/today", "#/learn", "#/desk", "#/practice"])
+  for (const hash of ["", "#/", "#/journey", "#/journey?chapter=anchors"])
+    assert.equal(coachRoute(hash).page, "journey");
+  for (const hash of ["#/learn", "#/foundations"])
+    assert.equal(coachRoute(hash).page, "foundations");
+  for (const hash of ["#/today", "#/desk", "#/practice"])
     assert.equal(coachRoute(hash).page, "desk");
   for (const hash of ["#/changes", "#/reference", "#/chords"])
     assert.equal(coachRoute(hash).page, "reference");

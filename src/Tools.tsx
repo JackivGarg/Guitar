@@ -9,12 +9,11 @@ import {
   Plus,
   Minus,
   Check,
-  Timer,
 } from "lucide-react";
 import { getAudio, click, playChord, playNote } from "./sound";
 import { chords, getChord, patterns, openMidi, stringNames } from "./course";
 import { ChordDiagram } from "./visuals";
-import { Progress, dayKey, useStored } from "./state";
+import { Progress, dayKey } from "./state";
 
 export function Metronome() {
   const [bpm, setBpm] = useState(60),

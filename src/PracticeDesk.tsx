@@ -12,6 +12,8 @@ import {
   RotateCcw,
   Volume2,
 } from "lucide-react";
+import { BasicsVisual } from "./BasicsVisual";
+import { recordFoundationRating } from "./foundations/foundationsPlan";
 import { ChangeDemo } from "./ChangeDemo";
 import { LessonDemo } from "./TechniqueDemo";
 import { buildChangeImage } from "./changeAtlasSvg";
@@ -110,6 +112,7 @@ export function PracticeDesk({
   const selectedRating = ratingOf(progress, unit.id);
   const available = deskUnits.filter((u) => u.skill === skill);
   const currentIndex = available.findIndex((u) => u.id === unit.id);
+  const nextSetup = available[currentIndex + 1]?.id ?? "clear-Em";
   const pending = Math.max(0, draft.seconds - draft.logged);
   useEffect(() => {
     if (saved.date !== dayKey()) {
@@ -227,15 +230,7 @@ export function PracticeDesk({
     panel.current?.scrollTo({ top: 0 });
   };
   const rate = (rating: Rating) =>
-    setProgress((p) => ({
-      ...p,
-      checks: {
-        ...p.checks,
-        ...Object.fromEntries(
-          ratings.map((r) => [ratingKey(unit.id, r.id), r.id === rating]),
-        ),
-      },
-    }));
+    setProgress((p) => recordFoundationRating(p, unit.id, rating, dayKey()));
   const saveSession = () => {
     if (pending < 1 || saveLock.current) return;
     saveLock.current = true;
@@ -420,13 +415,30 @@ export function PracticeDesk({
                 : stage === "repeat"
                   ? currentChange
                     ? "Move to the target, check the sound, then return. Count one change only after checking the destination."
-                    : "Repeat the task, check the result, then relax. Count a repetition only when you have listened to it."
+                    : unit.skill === "setup"
+                      ? "Repeat the physical task, check it against the instructions, then relax. Notice whether you can do it again without looking."
+                      : "Repeat the task, check the result, then relax. Count a repetition only when you have listened to it."
                   : currentChange
                     ? `Give ${chordLabel(currentChange.from)} four downstrokes, change to ${chordLabel(currentChange.to)} for four more. Keep counting; slow down if the change creates a gap.`
-                    : "Keep a steady count and use this skill in a short musical phrase. Make the next beat 1 your destination."}
+                    : unit.skill === "setup"
+                      ? "Carry this skill into the next foundation. Keep your comfortable hold and check each new sound before adding more fingers."
+                      : "Keep a steady count and use this skill in a short musical phrase. Make the next beat 1 your destination."}
             </p>
           </div>
-          {stage === "connect" ? (
+          {stage === "connect" && unit.skill === "setup" ? (
+            <div className="desk-connect">
+              <BasicsVisual key={unit.id} unitId={unit.id} onTool={onTool} />
+              <h2>Take this into your next exercise.</h2>
+              <p>{unit.check}</p>
+              <button
+                className="desk-main-button"
+                onClick={() => choose(nextSetup)}
+              >
+                Continue to {deskUnit(nextSetup).title.toLowerCase()}{" "}
+                <ArrowRight size={16} />
+              </button>
+            </div>
+          ) : stage === "connect" ? (
             <div className="desk-connect">
               <div className="desk-connect-route">
                 {(currentChange
@@ -464,7 +476,13 @@ export function PracticeDesk({
           ) : (
             <>
               <div className="desk-visual">
-                {animated ? (
+                {unit.skill === "setup" ? (
+                  <BasicsVisual
+                    key={unit.id}
+                    unitId={unit.id}
+                    onTool={onTool}
+                  />
+                ) : animated ? (
                   currentChange ? (
                     <Player
                       ref={player}
@@ -600,14 +618,16 @@ export function PracticeDesk({
                   )}
                 </div>
                 <div>
-                  <button onClick={() => setAnimated((v) => !v)}>
-                    <Play size={13} />
-                    {animated
-                      ? "Show complete image"
-                      : currentChange
-                        ? "Watch 3-second movement"
-                        : "Watch technique"}
-                  </button>
+                  {unit.skill !== "setup" && (
+                    <button onClick={() => setAnimated((v) => !v)}>
+                      <Play size={13} />
+                      {animated
+                        ? "Show complete image"
+                        : currentChange
+                          ? "Watch 3-second movement"
+                          : "Watch technique"}
+                    </button>
+                  )}
                   {unit.chords.map((c) => (
                     <button
                       key={c}
@@ -847,16 +867,22 @@ export function PracticeDesk({
                   ? setStage("connect")
                   : currentIndex < available.length - 1
                     ? choose(available[currentIndex + 1].id)
-                    : onJam()
+                    : unit.skill === "setup"
+                      ? choose("clear-Em")
+                      : onJam()
             }
           >
             {stage === "learn"
               ? "Try it yourself"
               : stage === "repeat"
-                ? "Use it in music"
+                ? unit.skill === "setup"
+                  ? "Carry it forward"
+                  : "Use it in music"
                 : currentIndex < available.length - 1
                   ? "Next exercise"
-                  : "Play a progression"}
+                  : unit.skill === "setup"
+                    ? "Make your first chord"
+                    : "Play a progression"}
             <ArrowRight size={15} />
           </button>
         </div>

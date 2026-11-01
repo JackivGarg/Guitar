@@ -62,9 +62,11 @@ export function FoundationsPath({
     );
   };
   const mark = (check: FoundationCheck, checked: boolean) =>
-    setProgress((p) => markFoundationCheckpoint(p,check.id,checked,dayKey()));
+    setProgress((p) =>
+      markFoundationCheckpoint(p, check.id, checked, dayKey()),
+    );
   const reviewed = (check: FoundationCheck) =>
-    setProgress((p) => markFoundationReview(p,check.id,dayKey()));
+    setProgress((p) => markFoundationReview(p, check.id, dayKey()));
   const guide = (check: FoundationCheck) => {
     if (check.guide) return onGuide(check.guide.lesson, check.guide.focus);
     if (check.target.kind === "jam") return onGuide(7);
@@ -189,8 +191,7 @@ export function FoundationsPath({
                   <ol className="foundation-check-list">
                     {chapter.checks.map((check) => {
                       const rating = foundationRating(progress, check.id),
-                        isChecked =
-                          !!progress.checks[foundationCheckpointKey(check.id)],
+                        isChecked = foundationChecked(progress, check.id),
                         last = progress.notes[foundationReviewKey(check.id)];
                       return (
                         <li
@@ -221,7 +222,7 @@ export function FoundationsPath({
                               {last === today ? (
                                 <span className="foundation-today">
                                   <Check size={12} />
-                                  Checked today
+                                  Reviewed today
                                 </span>
                               ) : null}
                             </div>
@@ -261,6 +262,11 @@ export function FoundationsPath({
                               <input
                                 type="checkbox"
                                 checked={isChecked}
+                                title={
+                                  isChecked
+                                    ? "Uncheck to revisit this foundation"
+                                    : "Mark this foundation checked"
+                                }
                                 onChange={(event) =>
                                   mark(check, event.target.checked)
                                 }
@@ -307,27 +313,35 @@ export function FoundationsPath({
               </div>
             </div>
             {review.length ? (
-              <><p className="foundation-review-count">{Math.min(5,review.length)} of {review.length} due reminders shown. Reviewing one brings the next into view.</p><ul>
-                {review.slice(0, 5).map((check) => (
-                  <li key={check.id}>
-                    <div>
-                      <b>{check.title}</b>
-                      <span>
-                        Last checked{" "}
-                        {progress.notes[foundationReviewKey(check.id)]}
-                      </span>
-                    </div>
-                    <button onClick={() => launch(check)}>
-                      Practise again
-                      <ArrowRight size={14} />
-                    </button>
-                    <button onClick={() => reviewed(check)}>
-                      I reviewed it today
-                      <Check size={14} />
-                    </button>
-                  </li>
-                ))}
-              </ul></>
+              <>
+                {review.length > 5 ? (
+                  <p className="foundation-review-count">
+                    5 of {review.length} due reminders shown. Reviewing one
+                    brings the next into view.
+                  </p>
+                ) : null}
+                <ul>
+                  {review.slice(0, 5).map((check) => (
+                    <li key={check.id}>
+                      <div>
+                        <b>{check.title}</b>
+                        <span>
+                          Last checked{" "}
+                          {progress.notes[foundationReviewKey(check.id)]}
+                        </span>
+                      </div>
+                      <button onClick={() => launch(check)}>
+                        Practise again
+                        <ArrowRight size={14} />
+                      </button>
+                      <button onClick={() => reviewed(check)}>
+                        I reviewed it today
+                        <Check size={14} />
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </>
             ) : (
               <p className="foundation-empty-review">
                 No review reminder is due from your marked checks yet. After you

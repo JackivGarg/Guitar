@@ -19,6 +19,8 @@ Preserve the exact instructor-checked chord-shifting routes in src/lesson7.ts: s
 
 The user requested Three.js scroll-worlds, GSAP ScrollTrigger and Impeccable for a substantial visual redesign and gave creative freedom. Educational practice usability remains essential. Keep three-second demonstrations and all-changes image reference.
 
+The instrument should resemble a Yamaha FS80C. Use its Black finish and published front/angle references to author an illustrative concert-cutaway model with correct learning landmarks.
+
 ## Evidence on Hand
 User-supplied transcripts for lessons 2–9, full supplied Lesson 7 MP3, and original source-video references. Lesson 7 routes were checked against actual source diagrams. Lessons 1 and 10 have supplementary app guides; their transcripts have not been supplied. Personal transcript/audio files are excluded from Git. Source code and history from the previous workspace were restored into this formerly empty folder.
 

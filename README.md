@@ -1,6 +1,6 @@
 # Six Strings
 
-A local guitar-learning app for a daily practice habit. Built with React, TypeScript and Remotion. Original diagrams and practice demonstrations are bundled with the app.
+A local guitar-learning app for a daily practice habit. React, TypeScript, Three.js, GSAP and Remotion connect a visual introduction to physical exercises, reference diagrams and musical practice. Fonts, guitar geometry and demonstrations are bundled locally.
 
 ## Run locally
 
@@ -26,13 +26,17 @@ Diagrams use the standard right-handed front view: low E on the left, high e on 
 
 ## Practice first; use the sources when needed
 
-The app opens on a **Practice desk**, a three-column teaching workspace. Pick a skill/exercise on the left, see the full movement or chord in the centre, and keep exact hand instructions on the right. Work through **Learn → Repeat → Connect** without a source lesson page. Start with C ↔ Am or freely choose all 15 changes, clear notes, rhythm, barre work and small fills. A fixed practice bar provides timing, a pulse, clean-repetition counting and saving. Self-ratings (Needs work / Getting there / Comfortable), exercise notes and position are local; saved practice uses actual elapsed time.
+The app opens on **Explore**: one procedural Yamaha FS80C Black teaching model, with a concert cutaway and six native-scroll camera compositions. Hear the open strings, locate a clean note, inspect C ↔ Am anchors and count four beats. Start or continue practice immediately; scrolling is optional. Motion can be paused, reduced-motion preferences are respected, and rendered guitar posters support WebGL failure. The model follows [Yamaha's published FS80C references](https://yamahamusicstore.in/musical-instruments/yamaha-fs80c-black-acoustic-guitar-made-in-india.html); it is an original illustrative model rather than a manufacturer CAD asset.
+
+**Foundations** gives a suggested sequence: comfortable support, strings, tuning, diagram reading, a clear note, all seven open chords, exact changes, pulse and strumming, then a first progression. Further changes, muting, barre work and fills stay available. Every task has a physical check and a direct exercise link. Explicit checks and confidence ratings control completion; dated self-assessments provide review reminders. No video-completion requirement or automatic playing score is used.
+
+The **Practice desk** is a three-column teaching workspace. Pick a skill/exercise on the left, see the full movement or chord in the centre, and keep exact hand instructions on the right. Work through **Learn → Repeat → Connect** without a source lesson page. Setup exercises use their own string, fingertip and diagram references, then lead to the next foundation. Chord changes retain complete stationary references and three-second optional demonstrations. A fixed practice bar provides timing, a pulse, clean-repetition counting and saving. Self-ratings (Needs work / Getting there / Comfortable), exercise notes and position are local; saved practice uses actual elapsed time.
 
 The **Play along** workspace has a four-beat count-in, musical timeline, current and upcoming chord, every chord diagram, one/two/four bars per chord, downstrokes or folk rhythm, and a selectable starting measure. Use C–Am–Em–E, G–D–Em–C or any of the 15 change pairs. Sound scheduling follows the WebAudio clock; stopping, leaving, hiding the page or opening tools stops the transport. Count-in time is excluded from the draft. Save actual practice after assessing how it went.
 
 The **Visual reference** workspace keeps all fifteen complete start → movement → finish images beside a selected-change inspector. Selecting a card updates its details without removing the others. Inspect stationary anchors, light-contact slides, exact finger routes and return groups; enlarge/save one image or all fifteen. Chord-shape and note/theory modes live in the same workspace. Three-second animations remain optional in the Practice desk, with static movement images shown first.
 
-The old sidebar/dashboard is no longer the application shell. The three workspaces are the top navigation. Tuning, metronome, chord shapes and fretboard open in a tools dialog while the workspace keeps its position. **Source library** is a separate supporting area with full original lesson chapters, transcripts, videos and Lesson 7 audio. Original video playback needs internet; bundled diagrams and practice tools run locally. Existing progress, notes, transcripts and the source-checked finger-route data are preserved. Older lesson and app URLs redirect to the appropriate workspace or source guide.
+The top navigation connects Explore, Foundations, Practice, Play along and Reference. Tuning, metronome, chord shapes and fretboard open in a tools dialog while the workspace keeps its position. **Source library** is a separate supporting area with full original lesson chapters, transcripts, videos and Lesson 7 audio. Original video playback needs internet; bundled diagrams and practice tools run locally. Existing progress, notes, transcripts and the source-checked finger-route data are preserved. Older lesson and app URLs redirect to the appropriate workspace or source guide.
 
 The supplied material is expanded into 9 chapters for Lesson 2, 11 for Lesson 3, 25 for Lesson 4, 10 for Lesson 5, 9 for Lesson 6, 10 for Lesson 8 and 15 for Lesson 9. Lessons 1 and 10 remain clearly labeled supplementary guides. A guide is an authored teaching aid, not a word-for-word translation.
 
@@ -45,3 +49,5 @@ The desktop shortcut is installed by `install-desktop.ps1`. It launches the loop
 ## Validation
 
 `npm test` verifies quick movement timing, count-in and progression boundaries, guided routine timing, SVG reference coverage and pressure instructions, chord pitch classes, all E/A major/minor movable positions at frets 1–12, chapter ordering and key technique coverage, and the Lesson 7 anchors and slides. Run `$env:SIX_STRINGS_INTEGRATION='1'; npm test` in PowerShell with the local server running to include asset serving, audio byte ranges and request boundary checks. `npm run build` checks TypeScript and creates the installed app bundle.
+
+The new tests also cover native-scroll chapter interpolation, standard string pitches, foundation targets, explicit completion/uncheck behavior, dated reviews and the complete sequence through a first progression. Whole-app visual and interaction testing is currently unverified because the connected browser fails before navigation or capture; model still renders and automated tests do not substitute for that evidence. See `docs/QA.md` for the checked scope and remaining captures.

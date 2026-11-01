@@ -7,7 +7,6 @@ import {
   Check,
   CheckCircle2,
   ChevronRight,
-  Clock,
   Headphones,
   Play,
   Pause,

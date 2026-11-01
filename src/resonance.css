@@ -1,0 +1,1027 @@
+:root {
+  font-family: "Rethink Sans", sans-serif;
+  color: #202a44;
+  background: #eef0f7;
+  --ink: #202a44;
+  --purple: #233db7;
+  --line: #d4daea;
+  --paper: #fcfcff;
+  --accent: #233db7;
+}
+::selection {
+  background: #cdd7ff;
+  color: #17213b;
+}
+button,
+input,
+select,
+textarea {
+  font-family: "Rethink Sans", sans-serif;
+}
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+summary:focus-visible {
+  outline: 3px solid #6684ec;
+  outline-offset: 4px;
+}
+.resonance-app {
+  --coach-ink: #202a44;
+  --coach-muted: #53607c;
+  --coach-teal: #233db7;
+  --coach-paper: #fcfcff;
+  --coach-line: #d8deed;
+  --ink: #202a44;
+  --purple: #233db7;
+  --paper: #fcfcff;
+  --line: #d8deed;
+  background: #eef0f7;
+  color: #202a44;
+  font-family: "Rethink Sans", sans-serif;
+}
+.resonance-app h1,
+.resonance-app h2,
+.resonance-app h3 {
+  font-family: "Bricolage Grotesque", "Rethink Sans", sans-serif;
+  letter-spacing: -0.025em;
+  color: #202a44;
+}
+.resonance-app h1 {
+  font-weight: 600;
+}
+.resonance-app p {
+  color: #53607c;
+}
+.resonance-app .coach-header {
+  height: 80px;
+  padding: 0 32px;
+  background: #fcfcff;
+  border-color: #d8deed;
+}
+.resonance-app .coach-brand {
+  gap: 9px;
+}
+.resonance-app .coach-brand > span {
+  background: transparent;
+  color: #233db7;
+  width: 32px;
+  height: 40px;
+}
+.resonance-app .coach-brand > b {
+  font-family: "Bricolage Grotesque", sans-serif;
+  font-weight: 600;
+  font-size: 24px;
+  letter-spacing: -0.035em;
+}
+.resonance-app .coach-header > nav {
+  gap: 2px;
+}
+.resonance-app .coach-header > nav > button {
+  font-size: 13px;
+  font-weight: 500;
+  color: #596782;
+  padding: 0 17px;
+}
+.resonance-app .coach-header > nav > button svg {
+  display: none;
+}
+.resonance-app .coach-header > nav > button.current {
+  color: #233db7;
+}
+.resonance-app .coach-header > nav > button.current:after {
+  height: 3px;
+  background: #233db7;
+  left: 16px;
+  right: 16px;
+}
+.resonance-app .coach-header-actions .coach-tune {
+  border: 1px solid #bfc9e0;
+  border-radius: 6px;
+  font-size: 12px;
+  color: #263961;
+  padding: 10px 12px;
+}
+.resonance-app .coach-header-actions .coach-tune:hover {
+  background: #e6ebfa;
+}
+.resonance-app .coach-history {
+  color: #4e5f83 !important;
+}
+.resonance-app .coach-today {
+  font-size: 11px;
+  color: #53607c;
+}
+.resonance-app .coach-context {
+  background: #e5e9f3;
+  border-color: #d7deed;
+  height: 32px;
+}
+.resonance-app .coach-context > span {
+  font-size: 10px;
+  letter-spacing: 0.05em;
+  color: #4e5f7e;
+}
+.resonance-app .coach-context > button {
+  color: #40557d;
+  font-size: 11px;
+}
+.resonance-app .coach-main {
+  padding: 25px 28px 30px;
+  max-width: 1800px;
+}
+.resonance-app .coach-page-journey {
+  padding: 0;
+  max-width: none;
+}
+.resonance-app .coach-page-foundations {
+  padding: 40px 40px 60px;
+  max-width: 1500px;
+}
+.resonance-loading {
+  min-height: 65vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 40px;
+  text-align: center;
+  color: #233db7;
+}
+.resonance-loading h1 {
+  font-size: 36px;
+  max-width: 650px;
+  margin: 25px 0 15px;
+}
+.resonance-loading p {
+  font-size: 16px;
+}
+.resonance-journey {
+  background: #233db7;
+}
+.resonance-journey .coach-header {
+  background: #233db7;
+  color: #f1f3fa;
+  border-color: #ffffff2b;
+}
+.resonance-journey .coach-brand > span {
+  color: #e6cc9b;
+}
+.resonance-journey .coach-header > nav > button {
+  color: #e3e8ff;
+}
+.resonance-journey .coach-header > nav > button.current {
+  color: #fff;
+}
+.resonance-journey .coach-header > nav > button.current:after {
+  background: #e6cc9b;
+}
+.resonance-journey .coach-header-actions .coach-tune {
+  color: #f1f3fa;
+  border-color: #8594d8;
+}
+.resonance-journey .coach-header-actions .coach-tune:hover {
+  background: #314ac0;
+}
+.resonance-journey .coach-history {
+  color: #f1f3fa !important;
+}
+.resonance-journey .coach-today {
+  color: #e3e8ff;
+}
+.resonance-app .primary {
+  background: #233db7;
+  color: #fff;
+  border-color: #233db7;
+  font-size: 13px;
+  min-height: 42px;
+  border-radius: 6px;
+  font-weight: 500;
+}
+.resonance-app .primary:hover:not(:disabled) {
+  background: #192e99;
+}
+.resonance-app .secondary {
+  background: #fcfcff;
+  color: #233db7;
+  border-color: #bec9e4;
+  min-height: 42px;
+  border-radius: 6px;
+}
+.resonance-app .secondary:hover:not(:disabled) {
+  background: #edf1ff;
+}
+.resonance-app .text-button,
+.resonance-app .text-link {
+  color: #233db7;
+}
+.resonance-app input,
+.resonance-app textarea,
+.resonance-app select {
+  caret-color: #233db7;
+}
+.resonance-app input[type="checkbox"] {
+  accent-color: #233db7;
+}
+.resonance-app ::-webkit-scrollbar {
+  width: 7px;
+  height: 7px;
+}
+.resonance-app ::-webkit-scrollbar-thumb {
+  background: #b5c0da;
+  border-radius: 5px;
+}
+.resonance-app ::-webkit-scrollbar-track {
+  background: transparent;
+}
+/* Practice remains a quiet, precise instrument beside the spatial journey. */
+.resonance-app .desk-workspace {
+  --desk-ink: #202a44;
+  --desk-muted: #53607c;
+  --desk-teal: #233db7;
+  --desk-line: #d9dfec;
+  --desk-paper: #fcfcff;
+  border: 0;
+  border-radius: 12px;
+  background: #fcfcff;
+  box-shadow: 0 12px 36px #1829480a;
+}
+.resonance-app .desk-library {
+  background: #e6ebf6;
+  border-color: #d3dbed;
+}
+.resonance-app .desk-library-title > b {
+  font-family: "Bricolage Grotesque", sans-serif;
+  font-size: 16px;
+}
+.resonance-app .desk-library-title > span {
+  font-size: 12px;
+  color: #53607c;
+}
+.resonance-app .desk-skill-switcher button {
+  font-size: 12px;
+  color: #4b5f83;
+  min-height: 36px;
+}
+.resonance-app .desk-skill-switcher button.active {
+  background: #233db7;
+  color: white;
+}
+.resonance-app .desk-skill-switcher button > span {
+  opacity: 1;
+}
+.resonance-app .desk-unit-list > button {
+  color: #42577d;
+  min-height: 52px;
+}
+.resonance-app .desk-unit-list > button.active {
+  background: #fcfcff;
+  border-color: transparent;
+  color: #233db7;
+  box-shadow: none;
+}
+.resonance-app .desk-unit-list b {
+  font-size: 13px;
+  font-weight: 500;
+}
+.resonance-app .desk-unit-list small {
+  font-size: 11px;
+  color: #576b90;
+}
+.resonance-app .desk-rating-dot {
+  background: #b8c4dd;
+}
+.resonance-app .desk-rating-dot.needs {
+  background: #a75d40;
+}
+.resonance-app .desk-rating-dot.growing {
+  background: #8a7425;
+}
+.resonance-app .desk-rating-dot.comfortable {
+  background: #39735b;
+}
+.resonance-app .desk-library-reference {
+  background: #dce4f5;
+  border-color: #cbd6ee;
+  color: #233db7;
+  font-size: 12px;
+}
+.resonance-app .desk-task-heading {
+  padding: 23px 25px 18px;
+}
+.resonance-app .desk-task-heading > div {
+  display: flex;
+  flex-direction: column;
+}
+.resonance-app .desk-task-heading h1 {
+  font-size: 31px;
+  margin: 0 0 8px;
+  order: 0;
+}
+.resonance-app .desk-task-heading > div > span {
+  order: 1;
+  font-size: 12px;
+  letter-spacing: 0;
+  color: #586b8d;
+}
+.resonance-app .desk-subtle {
+  color: #4c6390;
+  font-size: 12px;
+}
+.resonance-app .desk-stages {
+  margin: 0 25px;
+  border-color: #d9e1ef;
+}
+.resonance-app .desk-stages > button {
+  color: #617293;
+  min-height: 61px;
+}
+.resonance-app .desk-stages > button > span {
+  background: #e9edf7;
+  color: #526c9d;
+}
+.resonance-app .desk-stages > button[aria-selected="true"] {
+  border-color: #233db7;
+  color: #233db7;
+}
+.resonance-app .desk-stages > button[aria-selected="true"] > span {
+  background: #233db7;
+  color: white;
+}
+.resonance-app .desk-stages b {
+  font-size: 13px;
+}
+.resonance-app .desk-stages small {
+  font-size: 11px;
+  color: #536b93;
+}
+.resonance-app .desk-task {
+  padding: 21px 25px 12px;
+}
+.resonance-app .desk-task-cue > span {
+  display: none;
+}
+.resonance-app .desk-task-cue > p {
+  font-size: 15px;
+  line-height: 1.75;
+  color: #344b73;
+}
+.resonance-app .desk-visual {
+  background: #f0f2fa;
+  border-color: #dfe5f4;
+  border-radius: 8px;
+}
+.resonance-app .desk-visual-toolbar button {
+  font-size: 12px;
+  color: #425e8e;
+  border-color: #d5dff1;
+  min-height: 36px;
+}
+.resonance-app .desk-visual-toolbar button.active {
+  background: #e3e9fb;
+  color: #233db7;
+  border-color: #c5d0ef;
+}
+.resonance-app .desk-visual-toolbar span {
+  font-size: 11px;
+  color: #586f97;
+}
+.resonance-app .desk-instructions {
+  background: #f3f5fb;
+  border-color: #dfe5f2;
+  padding: 24px 20px;
+}
+.resonance-app .desk-instructions-heading > b {
+  font-family: "Bricolage Grotesque", sans-serif;
+  font-size: 17px;
+}
+.resonance-app .desk-instructions-heading > span {
+  font-size: 12px;
+  color: #566d94;
+}
+.resonance-app .desk-instructions h3 {
+  font-size: 12px;
+  letter-spacing: 0;
+  text-transform: none;
+  color: #344f80;
+  font-family: "Rethink Sans", sans-serif;
+  font-weight: 600;
+}
+.resonance-app .desk-instructions p,
+.resonance-app .desk-hand-steps p {
+  font-size: 13px;
+  line-height: 1.8;
+  color: #465f89;
+}
+.resonance-app .desk-anchor-rule {
+  background: #e5eeea;
+}
+.resonance-app .desk-anchor-rule h3 {
+  color: #2b604c;
+}
+.resonance-app .desk-anchor-rule p {
+  color: #345c4a;
+}
+.resonance-app .desk-release-rule {
+  background: #e5ebfa;
+}
+.resonance-app .desk-release-rule h3 {
+  color: #2d4e9c;
+}
+.resonance-app .desk-release-rule p {
+  color: #395684;
+}
+.resonance-app .desk-hand-steps li {
+  border-color: #dfe5f0;
+}
+.resonance-app .desk-hand-steps li > span {
+  background: #e0e8f9;
+  color: #3d59a1;
+}
+.resonance-app .desk-physical-check {
+  background: #e9efee;
+  color: #335e50;
+}
+.resonance-app .desk-physical-check p {
+  font-size: 13px;
+  color: #36584f;
+}
+.resonance-app .desk-physical-check b {
+  font-size: 12px;
+  letter-spacing: 0;
+}
+.resonance-app .desk-instructions summary {
+  font-size: 12px;
+  color: #4b6591;
+}
+.resonance-app .desk-full-route li {
+  font-size: 13px;
+  color: #4f6486;
+}
+.resonance-app .desk-scratchpad > label {
+  font-size: 12px;
+  color: #445c86;
+}
+.resonance-app .desk-scratchpad textarea {
+  background: #fff;
+  color: #293d62;
+  border-color: #cbd6ec;
+  font-size: 13px;
+}
+.resonance-app .desk-scratchpad textarea::placeholder {
+  color: #53607c;
+  opacity: 1;
+}
+.resonance-app .desk-guide-link {
+  font-size: 12px;
+  color: #526b95;
+}
+.resonance-app .desk-self-rating b {
+  font-size: 13px;
+}
+.resonance-app .desk-self-rating small {
+  font-size: 11px;
+  color: #576d91;
+}
+.resonance-app .desk-self-rating button {
+  font-size: 12px;
+  color: #48618b;
+  min-height: 36px;
+  border-color: #cbd7ed;
+}
+.resonance-app .desk-self-rating button.active {
+  background: #233db7;
+  border-color: #233db7;
+  color: #fff;
+}
+.resonance-app .desk-controls {
+  background: #e5eaf6;
+  border-color: #d5dded;
+  padding: 16px 20px 21px;
+}
+.resonance-app .desk-main-button {
+  background: #233db7;
+  color: white;
+  font-size: 13px;
+  min-height: 42px;
+}
+.resonance-app .desk-session-time > b {
+  color: #2e4694;
+  font-size: 21px;
+}
+.resonance-app .desk-session-time > small {
+  color: #506a96;
+  font-size: 10px;
+}
+.resonance-app .desk-save-button {
+  font-size: 12px;
+  color: #344d81;
+  border-color: #b9c9e6;
+  min-height: 36px;
+}
+.resonance-app .desk-pulse-controls label {
+  color: #405a89;
+  font-size: 12px;
+}
+.resonance-app .desk-pulse-controls select {
+  background: #fcfcff;
+  color: #344d81;
+  border-color: #c5d2e9;
+  font-size: 12px;
+}
+.resonance-app .desk-next-button {
+  color: #233db7;
+  font-size: 13px;
+  min-height: 42px;
+}
+.resonance-app .desk-live-message {
+  font-size: 10px;
+  color: #4f668f;
+  bottom: 3px;
+}
+.resonance-app .desk-connect {
+  background: #e8edfa;
+  border-color: #d5dff5;
+}
+.resonance-app .desk-connect h2 {
+  font-size: 25px;
+}
+.resonance-app .desk-connect p {
+  font-size: 14px;
+  color: #405780;
+}
+.resonance-app .desk-connect .desk-micro {
+  font-size: 12px;
+  color: #53678b;
+}
+.resonance-app .desk-connect-route b {
+  color: #233db7;
+}
+.resonance-app .desk-connect-route span {
+  color: #546fa0;
+}
+.resonance-app .desk-count-button {
+  background: #233db7;
+  color: #fff;
+  border-color: #233db7;
+  min-height: 40px;
+  font-size: 12px;
+}
+.resonance-app .desk-repetition > div:first-child > span {
+  font-size: 12px;
+  color: #4f658d;
+}
+.resonance-app .desk-repetition b {
+  color: #233db7;
+}
+.resonance-app .desk-repetition small {
+  font-size: 11px;
+  color: #566c92;
+}
+.resonance-app .room-reference {
+  --room-ink: #202a44;
+  --room-muted: #53607c;
+  --room-teal: #233db7;
+  --room-line: #d8deed;
+  --room-paper: #fcfcff;
+}
+.resonance-app .room-reference-modes {
+  background: #e1e7f5;
+}
+.resonance-app .room-reference-modes button {
+  color: #4e648b;
+}
+.resonance-app .room-reference-modes button.is-active {
+  background: #233db7;
+  color: #fff;
+  box-shadow: none;
+}
+.resonance-app .room-reference-tools button {
+  color: #3c5784;
+  border-color: #c7d2e9;
+}
+.resonance-app .room-change-tile {
+  background: #fcfcff;
+  border-color: #d5ddef;
+  box-shadow: none;
+}
+.resonance-app .room-change-tile.is-selected {
+  background: #e4eaff;
+  border-color: #233db7;
+  box-shadow: none;
+}
+.resonance-app .room-change-tile > span b {
+  color: #2b4277;
+}
+.resonance-app .room-change-tile > span small {
+  color: #5c719b;
+}
+.resonance-app .room-change-inspector {
+  background: #fcfcff;
+  border-color: #d8e0f0;
+}
+.resonance-app .room-contact-rule {
+  background: #e4eeea;
+}
+.resonance-app .room-pressure-rule {
+  background: #e5ebfa;
+}
+.resonance-app .room-finger-routes b {
+  color: #233db7;
+}
+.resonance-app .room-watch-change {
+  background: #233db7;
+  color: white;
+}
+.resonance-app .room-move-order {
+  background: #e9edf7;
+}
+.resonance-app .room-board-practice {
+  background: #e1e8fa;
+  border-color: #cdd9f0;
+}
+.resonance-app .room-board-practice button {
+  background: #233db7;
+  color: #fff;
+}
+.resonance-app .jam-workspace {
+  --jam-ink: #202a44;
+  --jam-teal: #233db7;
+  --jam-line: #d5deed;
+  --jam-paper: #fcfcff;
+}
+.resonance-app .jam-eyebrow {
+  display: none;
+}
+.resonance-app .jam-heading h1 {
+  font-size: 38px;
+}
+.resonance-app .jam-heading h1 > span {
+  color: #233db7;
+}
+.resonance-app .jam-controls {
+  background: #fcfcff;
+  border-color: #d8e0ee;
+}
+.resonance-app .jam-controls select {
+  color: #314c7b;
+  border-color: #c9d5ea;
+  background: #f5f7fc;
+}
+.resonance-app .jam-stage {
+  background: #233db7;
+  border-color: #233db7;
+}
+.resonance-app .jam-stage h2,
+.resonance-app .jam-stage strong,
+.resonance-app .jam-stage p {
+  color: #f3f5ff;
+}
+.resonance-app .jam-start {
+  background: #233db7;
+  color: #fff;
+}
+.resonance-app .jam-chord {
+  background: #fcfcff;
+}
+.resonance-app .jam-chord.is-current {
+  background: #e3eaff;
+  border-color: #233db7;
+}
+.resonance-app .coach-tools-dialog {
+  background: #fcfcff;
+  border-color: #bdcbe6;
+  box-shadow: 0 25px 90px #17213b40;
+}
+.resonance-app .coach-tools-dialog::backdrop {
+  background: #17213ba8;
+  backdrop-filter: none;
+}
+.resonance-app .coach-tools-dialog > nav {
+  background: #e7ecf8;
+  border-color: #cdd8ec;
+}
+.resonance-app .coach-tools-dialog > nav button {
+  color: #425c8a;
+}
+.resonance-app .coach-tools-dialog > nav button[aria-pressed="true"] {
+  background: #233db7;
+  color: white;
+}
+.resonance-app .coach-tools-dialog > header span {
+  display: none;
+}
+.resonance-app .coach-source-card {
+  background: #fcfcff;
+  border-color: #d2dcee;
+  border-radius: 10px;
+}
+.resonance-app .coach-source-card:hover {
+  background: #eaf0fd;
+  border-color: #91a4d2;
+}
+.resonance-app .coach-source-card > span {
+  font-size: 11px;
+  color: #4f6792;
+  letter-spacing: 0;
+}
+.resonance-app .coach-source-card small {
+  font-size: 12px;
+  color: #566d92;
+}
+.resonance-app .coach-library-heading h1 {
+  font-size: 44px;
+}
+.resonance-app .coach-library-heading p {
+  font-size: 16px;
+}
+.resonance-app .coach-toast {
+  background: #233db7;
+  border-color: #3e5ad0;
+  color: white;
+}
+.resonance-app .coach-storage-error {
+  background: #8d4129;
+}
+.basics-strings,
+.basics-fret,
+.basics-fingers,
+.basics-posture {
+  width: 100%;
+  padding: 28px;
+  text-align: left;
+}
+.resonance-app .basics-strings h2,
+.resonance-app .basics-fret h2,
+.resonance-app .basics-fingers h2,
+.resonance-app .basics-posture h2 {
+  font-size: 26px;
+  line-height: 1.25;
+  margin: 0 0 12px;
+}
+.basics-strings > p,
+.basics-fret > p,
+.basics-fingers > p,
+.basics-posture > p {
+  font-size: 14px;
+  line-height: 1.7;
+  max-width: 65ch;
+}
+.basics-string-list {
+  margin: 16px 0;
+}
+.basics-string-list > button {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  width: 100%;
+  padding: 9px 10px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  color: #344d77;
+}
+.basics-string-list > button.selected {
+  background: #e0e7fc;
+  border-color: #c5d2f4;
+}
+.basics-string-list span {
+  font-size: 12px;
+  width: 16px;
+  color: #59719a;
+}
+.basics-string-list b {
+  font-size: 14px;
+  min-width: 55px;
+  font-weight: 500;
+}
+.basics-string-list i {
+  display: block;
+  flex: 1;
+  background: #9aa9c4;
+}
+.basics-string-list svg {
+  color: #233db7;
+}
+.resonance-app .basics-caption {
+  font-size: 12px;
+  color: #4d6288;
+  margin: 15px 0 0;
+}
+.basics-fret > svg {
+  width: 100%;
+  max-height: 225px;
+}
+.basics-fingers > div {
+  display: flex;
+  gap: 10px;
+  margin: 25px 0;
+}
+.basics-fingers > div > button {
+  flex: 1;
+  padding: 16px 8px;
+  text-align: center;
+  background: #e3e9f7;
+  border-radius: 7px;
+  border: 1px solid #d2dcf2;
+}
+.basics-fingers > div > button.selected {
+  background: #233db7;
+  color: white;
+  border-color: #233db7;
+}
+.basics-fingers b {
+  display: block;
+  font-size: 33px;
+  font-weight: 500;
+  margin-bottom: 8px;
+}
+.basics-fingers span {
+  font-size: 12px;
+}
+.basics-diagram-reading {
+  margin: 24px 0 0;
+  padding-top: 22px;
+  border-top: 1px solid #c6cee2;
+  display: grid;
+  grid-template-columns: minmax(100px, 150px) minmax(0, 1fr);
+  gap: 24px;
+  text-align: left;
+  align-items: center;
+}
+.basics-diagram-reading .chord-svg {
+  width: 100%;
+  height: auto;
+}
+.resonance-app .basics-diagram-reading h3 {
+  font-size: 20px;
+  margin: 0 0 12px;
+}
+.resonance-app .basics-diagram-reading p {
+  font-size: 14px;
+  line-height: 1.65;
+  margin: 0 0 10px;
+}
+@media (max-width: 480px) {
+  .basics-diagram-reading {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  .basics-diagram-reading .chord-svg {
+    max-width: 150px;
+    margin: auto;
+  }
+}
+.basics-posture ul {
+  list-style: none;
+  padding: 0;
+  margin: 22px 0;
+}
+.basics-posture li {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  font-size: 14px;
+  line-height: 1.7;
+  padding: 10px 0;
+  border-bottom: 1px solid #d5deef;
+}
+.basics-posture li > svg {
+  color: #233db7;
+  margin-top: 3px;
+}
+@media (min-width: 851px) {
+  .resonance-app .desk-workspace {
+    grid-template-columns: 205px minmax(0, 1fr) 295px;
+    height: calc(100dvh - 162px);
+    min-height: 550px;
+  }
+  .resonance-app .desk-instructions {
+    font-size: 13px;
+  }
+}
+@media (min-width: 1500px) {
+  .resonance-app .desk-workspace {
+    grid-template-columns: 235px minmax(0, 1fr) 330px;
+  }
+}
+@media (max-width: 1200px) {
+  .resonance-app .coach-header {
+    padding: 0 22px;
+  }
+  .resonance-app .coach-header > nav > button {
+    font-size: 12px;
+    padding: 0 11px;
+  }
+  .resonance-app .coach-brand > b {
+    font-size: 22px;
+  }
+  .resonance-app .coach-today {
+    display: none;
+  }
+  .resonance-app .coach-main {
+    padding: 18px;
+  }
+  .resonance-app .coach-page-journey {
+    padding: 0;
+  }
+  .resonance-app .coach-page-foundations {
+    padding: 30px 24px;
+  }
+}
+@media (max-width: 1000px) and (min-width: 851px) {
+  .resonance-app .desk-workspace {
+    grid-template-columns: 165px minmax(0, 1fr) 250px;
+  }
+  .resonance-app .desk-task-heading h1 {
+    font-size: 26px;
+  }
+  .resonance-app .desk-controls {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .resonance-app .desk-progress-controls {
+    margin-left: auto;
+  }
+}
+@media (max-width: 760px) {
+  .resonance-app .coach-header {
+    height: auto;
+    min-height: 116px;
+    padding: 13px 15px 0;
+  }
+  .resonance-app .coach-header > nav {
+    height: 44px;
+    overflow-x: auto;
+    gap: 0;
+  }
+  .resonance-app .coach-header > nav > button {
+    min-width: 0;
+    padding: 0 8px;
+    font-size: 11px;
+  }
+  .resonance-app .coach-header > nav > button.current:after {
+    left: 8px;
+    right: 8px;
+  }
+  .resonance-app .coach-header > nav > button svg {
+    display: none;
+  }
+  .resonance-app .coach-brand > b {
+    font-size: 23px;
+  }
+  .resonance-app .coach-header-actions .coach-tune {
+    min-height: 36px;
+    font-size: 11px;
+    padding: 7px 10px;
+  }
+  .resonance-app .coach-context > span {
+    font-size: 8px;
+    letter-spacing: 0;
+  }
+  .resonance-app .coach-main {
+    padding: 12px;
+  }
+  .resonance-app .coach-page-journey {
+    padding: 0;
+  }
+  .resonance-app .coach-page-foundations {
+    padding: 25px 17px;
+  }
+  .resonance-app .desk-instructions p {
+    font-size: 14px;
+  }
+  .resonance-app .desk-task-heading h1 {
+    font-size: 28px;
+  }
+  .resonance-app .desk-self-rating {
+    gap: 12px;
+  }
+  .resonance-app .desk-self-rating button {
+    font-size: 12px;
+  }
+  .resonance-app .desk-controls {
+    padding: 13px;
+  }
+  .resonance-app .desk-live-message {
+    display: none;
+  }
+  .resonance-app .coach-library-heading h1 {
+    font-size: 34px;
+  }
+  .basics-strings,
+  .basics-fret,
+  .basics-fingers,
+  .basics-posture {
+    padding: 20px;
+  }
+  .basics-fingers > div {
+    gap: 6px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .resonance-app * {
+    scroll-behavior: auto !important;
+    transition: none !important;
+  }
+}
