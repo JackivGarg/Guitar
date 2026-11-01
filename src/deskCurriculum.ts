@@ -1,5 +1,12 @@
 import { changes, chordLabel } from "./lesson7";
-export type DeskSkill = "changes" | "notes" | "rhythm" | "barre" | "fills";
+import { foundationPracticeUnits } from "./foundations/foundationsPlan";
+export type DeskSkill =
+  | "setup"
+  | "changes"
+  | "notes"
+  | "rhythm"
+  | "barre"
+  | "fills";
 export type DeskUnit = {
   id: string;
   skill: DeskSkill;
@@ -17,6 +24,11 @@ export type DeskUnit = {
   change?: string;
 };
 export const deskSkills: { id: DeskSkill; title: string; hint: string }[] = [
+  {
+    id: "setup",
+    title: "Get ready to play",
+    hint: "Position, strings and your first note",
+  },
   {
     id: "changes",
     title: "Chord changes",
@@ -253,6 +265,7 @@ export const deskUnits: DeskUnit[] = [
     trap: "Adding notes is useful only while the pulse continues. Keep the phrase short.",
     demo: "fill",
   },
+  ...foundationPracticeUnits,
 ];
 export const deskUnit = (id: string) =>
   deskUnits.find((u) => u.id === id) ?? deskUnits[0];
