@@ -218,7 +218,7 @@ The practice note is a white, full-width multiline field with a fine pale-blue b
 
 ### Navigation
 
-The header uses plain text labels and a short active underline. The journey version sits on cobalt with pale text and a warm active underline; the task version sits on Task Paper with cobalt selection. On small screens the same five primary destinations remain in a horizontal row. Tool navigation uses contained selected tabs. Journey chapter navigation uses numbers, reveals the active chapter name and includes a visible current state.
+The header uses plain text labels and a short active underline. The journey version sits on cobalt with pale text and a warm active underline; the task version sits on Task Paper with cobalt selection. On small screens the primary destinations remain in a horizontal row. Tool navigation uses contained selected tabs. Journey chapter navigation uses numbers, reveals the active chapter name and includes a visible current state.
 
 ### String controls and chord studies
 
