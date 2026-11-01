@@ -73,6 +73,7 @@ export function GuitarWorld({
     let alive = true,
       renderer: THREE.WebGLRenderer | undefined,
       model: ReturnType<typeof createGuitarModel> | undefined,
+      environmentTarget: THREE.WebGLCubeRenderTarget | undefined,
       observer: IntersectionObserver | undefined,
       resizeObserver: ResizeObserver | undefined,
       raf = 0,
@@ -324,6 +325,60 @@ export function GuitarWorld({
       renderer.toneMapping = THREE.ACESFilmicToneMapping;
       renderer.toneMappingExposure = 1.07;
       renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+      // Capture a small procedural studio once. The panels illuminate reflections
+      // without becoming painted highlights or visible geometry in the guitar scene.
+      const studio = new THREE.Scene();
+      const roomGeometry = new THREE.BoxGeometry(24, 24, 24);
+      const roomMaterial = new THREE.MeshBasicMaterial({
+        color: new THREE.Color().setRGB(0.025, 0.032, 0.048),
+        side: THREE.BackSide,
+        toneMapped: false,
+      });
+      studio.add(new THREE.Mesh(roomGeometry, roomMaterial));
+      const panelGeometry = new THREE.PlaneGeometry(1, 1);
+      const panelMaterials: THREE.MeshBasicMaterial[] = [];
+      const panels = [
+        { position: [-3.7, 0.6, 7.5], size: [1.8, 10], strength: 4.2 },
+        { position: [5.0, 2.8, 4.2], size: [2.4, 7], strength: 1.7 },
+        { position: [-1.2, 7.0, -3.5], size: [5.5, 3.5], strength: 1.1 },
+      ];
+      for (const definition of panels) {
+        const material = new THREE.MeshBasicMaterial({
+          color: new THREE.Color().setRGB(
+            definition.strength,
+            definition.strength,
+            definition.strength,
+          ),
+          side: THREE.DoubleSide,
+          toneMapped: false,
+        });
+        panelMaterials.push(material);
+        const panel = new THREE.Mesh(panelGeometry, material);
+        panel.position.set(
+          definition.position[0],
+          definition.position[1],
+          definition.position[2],
+        );
+        panel.scale.set(definition.size[0], definition.size[1], 1);
+        panel.lookAt(0, 0, 0);
+        studio.add(panel);
+      }
+      const pmrem = new THREE.PMREMGenerator(renderer);
+      try {
+        environmentTarget = pmrem.fromScene(studio, 0.065, 0.1, 40, {
+          size: 256,
+        });
+        scene.environment = environmentTarget.texture;
+        scene.environmentIntensity = 0.12;
+      } finally {
+        pmrem.dispose();
+        roomGeometry.dispose();
+        roomMaterial.dispose();
+        panelGeometry.dispose();
+        panelMaterials.forEach((material) => material.dispose());
+        studio.clear();
+      }
+
       renderer.domElement.style.cssText =
         "display:block;width:100%;height:100%;touch-action:pan-y;";
       renderer.domElement.setAttribute(
@@ -378,6 +433,8 @@ export function GuitarWorld({
       floor.geometry.dispose();
       (floor.material as THREE.Material).dispose();
       key.shadow.map?.dispose();
+      scene.environment = null;
+      environmentTarget?.dispose();
       renderer?.dispose();
       renderer?.forceContextLoss();
       scene.clear();

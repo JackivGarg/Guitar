@@ -381,15 +381,17 @@ export default function CoachApp() {
           ))}
         </nav>
         <div className="coach-tools-body" key={tool}>
-          {tool === "tuning" ? (
-            <Tuning />
-          ) : tool === "rhythm" ? (
-            <Metronome />
-          ) : tool === "fretboard" ? (
-            <Fretboard />
-          ) : tool === "chords" ? (
-            <ChordLibrary />
-          ) : null}
+          <Suspense fallback={<p role="status">Opening your tool…</p>}>
+            {tool === "tuning" ? (
+              <Tuning />
+            ) : tool === "rhythm" ? (
+              <Metronome />
+            ) : tool === "fretboard" ? (
+              <Fretboard />
+            ) : tool === "chords" ? (
+              <ChordLibrary />
+            ) : null}
+          </Suspense>
         </div>
       </dialog>
       {toast && (

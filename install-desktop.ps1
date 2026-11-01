@@ -25,16 +25,25 @@ $g.Dispose()
 $bitmap.Dispose()
 $desktopPath = [Environment]::GetFolderPath('Desktop')
 $linkPath = Join-Path $desktopPath 'Six Strings.lnk'
+$launcherDescription = 'Six Strings - your local guitar lessons and daily practice'
+$launcherCache = Join-Path $env:LOCALAPPDATA 'Six Strings'
+New-Item -ItemType Directory -Path $launcherCache -Force | Out-Null
+$launcherIcon = Join-Path $launcherCache 'icon.ico'
+Copy-Item -LiteralPath $iconPath -Destination $launcherIcon -Force
+# Encode the script path so shortcut COM serialization preserves non-ASCII folders.
+$launcherScript = Join-Path $appRoot 'launch.ps1'
+$launcherCommand = "& '" + $launcherScript.Replace("'", "''") + "'"
+$launcherEncoded = [Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes($launcherCommand))
 $shell = New-Object -ComObject WScript.Shell
 if (Test-Path -LiteralPath $linkPath) {
     $existing = $shell.CreateShortcut($linkPath)
-    if ($existing.Arguments -notlike "*$appRoot*") { $linkPath = Join-Path $desktopPath 'Six Strings Guitar.lnk' }
+    if ($existing.Arguments -notlike "*$appRoot*" -and $existing.Description -ne $launcherDescription) { $linkPath = Join-Path $desktopPath 'Six Strings Guitar.lnk' }
 }
 $shortcut = $shell.CreateShortcut($linkPath)
-$shortcut.TargetPath = Join-Path $env:SystemRoot 'System32/wscript.exe'
-$shortcut.Arguments = '"' + (Join-Path $appRoot 'Launch Six Strings.vbs') + '"'
-$shortcut.WorkingDirectory = $appRoot
-$shortcut.IconLocation = "$iconPath,0"
-$shortcut.Description = 'Six Strings - your local guitar lessons and daily practice'
+$shortcut.TargetPath = Join-Path $env:SystemRoot 'System32/WindowsPowerShell/v1.0/powershell.exe'
+$shortcut.Arguments = '-NoLogo -NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass -EncodedCommand ' + $launcherEncoded
+$shortcut.WorkingDirectory = $launcherCache
+$shortcut.IconLocation = "$launcherIcon,0"
+$shortcut.Description = $launcherDescription
 $shortcut.Save()
 Write-Output "Desktop launcher created: $linkPath"

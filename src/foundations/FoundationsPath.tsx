@@ -11,7 +11,6 @@ import { dayKey } from "../state";
 import { deskUnit } from "../deskCurriculum";
 import {
   foundationChecked,
-  foundationCheckpointKey,
   foundationChecks,
   foundationRating,
   foundationReviewKey,
