@@ -29,6 +29,11 @@ const FoundationsPath = lazy(() =>
     default: m.FoundationsPath,
   })),
 );
+const ChangesWorkshop = lazy(() =>
+  import("./changes/ChangesWorkshop").then((m) => ({
+    default: m.ChangesWorkshop,
+  })),
+);
 import type { Sources } from "./LegacyLibrary";
 const ChordLibrary = lazy(() =>
   import("./LegacyLibrary").then((m) => ({ default: m.ChordLibrary })),
@@ -50,6 +55,7 @@ import {
   validProgress,
 } from "./state";
 import { coachRoute, type CoachPage, type CoachRoute } from "./coachRoute";
+import { persistJourneySessions } from "./journey/journeyStorage";
 import "./coach-app.css";
 import "./resonance.css";
 type Tool = "tuning" | "rhythm" | "fretboard" | "chords";
@@ -69,6 +75,8 @@ export default function CoachApp() {
   const [tool, setTool] = useState<Tool | null>(null),
     [toast, setToast] = useState("");
   const toolsDialog = useRef<HTMLDialogElement>(null);
+  const currentProgress = useRef(progress);
+  currentProgress.current = progress;
   const today = progress.sessions
     .filter((s) => s.date === dayKey())
     .reduce((n, s) => n + s.seconds, 0);
@@ -110,6 +118,11 @@ export default function CoachApp() {
     setProgress((p) => ({ ...p, lastLesson: lesson }));
     window.scrollTo({ top: 0 });
   };
+  const openChanges = (group = 1, change?: string) => {
+    location.hash = `/changes?group=${group}${change ? `&change=${encodeURIComponent(change)}` : ""}`;
+    setRoute({ page: "changes", group, change });
+    window.scrollTo({ top: 0 });
+  };
   const save = (session: Session) => {
     setProgress((p) => ({
       ...p,
@@ -119,9 +132,22 @@ export default function CoachApp() {
     }));
     setToast("Practice saved. Your next visit starts from here.");
   };
+  const saveJourneySessions = (sessions: Session[]) => {
+    const result = persistJourneySessions(
+      currentProgress.current,
+      sessions,
+      localStorage,
+    );
+    if (!result.ok) return false;
+    currentProgress.current = result.progress;
+    setProgress(result.progress);
+    setToast("Practice saved. Your next visit starts from here.");
+    return true;
+  };
   const lesson = lessons.find((l) => l.id === route.lesson);
   const mainPage = [
     "journey",
+    "changes",
     "foundations",
     "desk",
     "jam",
@@ -153,6 +179,7 @@ export default function CoachApp() {
               { id: "journey", label: "Explore", icon: Guitar },
               { id: "foundations", label: "Foundations", icon: BookOpen },
               { id: "desk", label: "Practice", icon: Guitar },
+              { id: "changes", label: "Changes", icon: Music2 },
               { id: "jam", label: "Play along", icon: Music2 },
               { id: "reference", label: "Reference", icon: BookOpen },
             ] as const
@@ -193,9 +220,11 @@ export default function CoachApp() {
               ? "LEARN A MOVEMENT → REPEAT IT → USE IT IN MUSIC"
               : route.page === "jam"
                 ? "FOLLOW THE PULSE. PREPARE THE NEXT CHORD."
-                : route.page === "reference"
-                  ? "KEEP EVERY CHANGE WITHIN REACH."
-                  : "YOUR SUPPORTING MATERIAL"}
+                : route.page === "changes"
+                  ? "CHOOSE A GROUP → SEE THE ROUTE → PLAY IT BOTH WAYS"
+                  : route.page === "reference"
+                    ? "KEEP EVERY CHANGE WITHIN REACH."
+                    : "YOUR SUPPORTING MATERIAL"}
           </span>
           <button onClick={() => go("library")}>
             <Headphones size={13} />
@@ -226,6 +255,19 @@ export default function CoachApp() {
               }
               onFoundations={() => go("foundations")}
               onReference={() => go("reference")}
+              onChanges={openChanges}
+              onSaveSessions={saveJourneySessions}
+              onJam={() => go("jam")}
+              suspended={tool !== null}
+            />
+          )}
+          {route.page === "changes" && (
+            <ChangesWorkshop
+              initialGroup={route.group}
+              initialChange={route.change}
+              onPractice={study}
+              onGuide={guide}
+              suspended={tool !== null}
             />
           )}
           {route.page === "foundations" && (

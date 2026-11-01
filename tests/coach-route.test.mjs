@@ -16,9 +16,17 @@ test("Desktop and older links open the new workspaces while preserving source gu
     assert.equal(coachRoute(hash).page, "foundations");
   for (const hash of ["#/today", "#/desk", "#/practice"])
     assert.equal(coachRoute(hash).page, "desk");
-  for (const hash of ["#/changes", "#/reference", "#/chords"])
+  for (const hash of ["#/reference", "#/chords"])
     assert.equal(coachRoute(hash).page, "reference");
   assert.equal(coachRoute("#/jam").page, "jam");
+  for (const hash of ["#/changes", "#/shifts", "#/transitions"])
+    assert.equal(coachRoute(hash).page, "changes");
+  assert.deepEqual(coachRoute("#/changes?group=4&change=F-G"), {
+    page: "changes",
+    group: 4,
+    change: "F-G",
+  });
+  assert.equal(coachRoute("#/changes?group=99").group, undefined);
   assert.equal(coachRoute("#/sources").page, "library");
   assert.equal(coachRoute("#/journal").page, "progress");
   assert.deepEqual(coachRoute("#/lesson/7?focus=A-D"), {

@@ -2,6 +2,7 @@ export type CoachPage =
   | "journey"
   | "foundations"
   | "desk"
+  | "changes"
   | "jam"
   | "reference"
   | "library"
@@ -12,6 +13,7 @@ export type CoachRoute = {
   lesson?: number;
   focus?: string;
   change?: string;
+  group?: number;
 };
 export function coachRoute(hash: string): CoachRoute {
   const [path, query] = hash.replace(/^#/, "").split("?"),
@@ -26,8 +28,18 @@ export function coachRoute(hash: string): CoachRoute {
   if (["", "/", "/journey"].includes(path)) return { page: "journey" };
   if (["/foundations", "/learn"].includes(path)) return { page: "foundations" };
   if (path === "/jam") return { page: "jam" };
-  if (["/reference", "/changes", "/chords"].includes(path))
-    return { page: "reference" };
+  if (["/changes", "/shifts", "/transitions"].includes(path)) {
+    const group = Number(params.get("group"));
+    return {
+      page: "changes",
+      group:
+        Number.isInteger(group) && group >= 1 && group <= 11
+          ? group
+          : undefined,
+      change: params.get("change") ?? undefined,
+    };
+  }
+  if (["/reference", "/chords"].includes(path)) return { page: "reference" };
   if (["/library", "/sources"].includes(path)) return { page: "library" };
   if (["/progress", "/journal"].includes(path)) return { page: "progress" };
   return { page: "desk", change: params.get("change") ?? undefined };

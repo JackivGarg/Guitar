@@ -23,7 +23,10 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { getAudio, playChord, playNote, click } from "../sound";
 import { getChord } from "../course";
 import { ChordDiagram } from "../visuals";
-import type { Progress } from "../state";
+import type { Progress, Session } from "../state";
+import { resolveStudyNote, type StudyNote } from "../world/fretStudy";
+import { NoteStudy, ChordStudy, JourneyPracticeBar } from "./InstrumentStudy";
+import { useJourneyPractice } from "./useJourneyPractice";
 import {
   chapterAtProgress,
   progressAtScroll,
@@ -42,6 +45,10 @@ type Props = {
   onFoundations: () => void;
   onReference: () => void;
   progress: Progress;
+  onChanges: (group?: number, change?: string) => void;
+  onSaveSessions: (sessions: Session[]) => boolean;
+  onJam: () => void;
+  suspended?: boolean;
 };
 class InstrumentBoundary extends Component<
   { children: ReactNode; onFailure: () => void },
@@ -84,6 +91,10 @@ export function GuitarJourney({
   onFoundations,
   onReference,
   progress,
+  onChanges,
+  onSaveSessions,
+  onJam,
+  suspended = false,
 }: Props) {
   const root = useRef<HTMLElement>(null),
     reducedMotion = useReducedMotion();
@@ -95,10 +106,32 @@ export function GuitarJourney({
     [activeString, setActiveString] = useState<number | null>(null),
     [pluckNonce, setPluckNonce] = useState(0),
     [soundStatus, setSoundStatus] = useState(""),
-    [pulse, setPulse] = useState<number | null>(null);
+    [pulse, setPulse] = useState<number | null>(null),
+    [studyView, setStudyView] = useState<number | null>(null),
+    [studyNote, setStudyNote] = useState<StudyNote>({
+      stringIndex: 5,
+      fret: 1,
+    }),
+    [studyChord, setStudyChord] = useState("C"),
+    [tempo, setTempo] = useState(60),
+    [pulseLoop, setPulseLoop] = useState(false);
   const pulseTimer = useRef<ReturnType<typeof setInterval> | null>(null),
     chapter = chapterAtProgress(position),
     hasHistory = progress.sessions.length > 0 || progress.completed.length > 0;
+  const viewChapter = studyView ?? chapter;
+  const practice = useJourneyPractice({
+    chapter: journeyChapters[viewChapter].id,
+    suspended,
+    onSaveSessions,
+  });
+  const practiceIn = (index: number) => (
+    <JourneyPracticeBar
+      practice={practice}
+      active={viewChapter === index}
+      suspended={suspended}
+      onFocus={() => setStudyView(index)}
+    />
+  );
   const onReady = useCallback(() => setWorldReady(true), []),
     onWorldFailure = useCallback(() => {
       setWorldFailed(true);
@@ -127,13 +160,47 @@ export function GuitarJourney({
   }, []);
   const hearNote = () => {
     try {
-      playNote(65);
-      setSoundStatus("High e, fret 1: F4. Synthesized reference tone.");
+      const note = resolveStudyNote(studyNote)!;
+      playNote(note.midi);
+      setActiveString(note.stringIndex);
+      setPluckNonce((n) => n + 1);
+      setSoundStatus(
+        `${openStringStudy[note.stringIndex].name}, ${note.open ? "open string" : `fret ${note.fret}`}: ${note.pitch}. Synthesized reference tone.`,
+      );
     } catch {
       setSoundStatus(
         "Sound could not start. Press Hear the note to try again.",
       );
     }
+  };
+  const hearInstrumentString = (index: number) => {
+    if (suspended || index < 0 || index > 5) return;
+    if (viewChapter === 2) {
+      const next = { ...studyNote, stringIndex: index };
+      const note = resolveStudyNote(next)!;
+      setStudyNote(next);
+      setStudyView(2);
+      playNote(note.midi);
+      setActiveString(index);
+      setPluckNonce((n) => n + 1);
+      setSoundStatus(
+        `${openStringStudy[index].name}, ${note.open ? "open" : `fret ${note.fret}`}: ${note.pitch}. Synthesized reference tone.`,
+      );
+    } else if (viewChapter === 3) {
+      const fret = getChord(studyChord).frets[index];
+      if (fret < 0) {
+        setSoundStatus(
+          `Leave ${openStringStudy[index].name} out of ${studyChord}. Its diagram has a cross.`,
+        );
+        return;
+      }
+      playNote(openStringStudy[index].midi + fret);
+      setActiveString(index);
+      setPluckNonce((n) => n + 1);
+      setSoundStatus(
+        `${studyChord}: ${openStringStudy[index].name}, ${fret === 0 ? "open" : `fret ${fret}`}. Synthesized reference tone.`,
+      );
+    } else hearString(index);
   };
   const hearShape = (name: string) => {
     try {
@@ -157,14 +224,16 @@ export function GuitarJourney({
       click(a.currentTime + 0.025, true);
       pulseTimer.current = setInterval(() => {
         beat++;
-        if (beat >= 4) {
+        if (beat >= 4 && !pulseLoop) {
           stopPulse();
           return;
         }
-        setPulse(beat);
-        click(getAudio().currentTime + 0.025, false);
-      }, 1000);
-      setSoundStatus("Four beats at 60 BPM. Count one, two, three, four.");
+        setPulse(beat % 4);
+        click(getAudio().currentTime + 0.025, beat % 4 === 0);
+      }, 60000 / tempo);
+      setSoundStatus(
+        `${pulseLoop ? "Continuous pulse" : "Four beats"} at ${tempo} BPM. Count one, two, three, four.`,
+      );
     } catch {
       stopPulse();
       setSoundStatus(
@@ -179,8 +248,11 @@ export function GuitarJourney({
     [],
   );
   useEffect(() => {
-    if (chapter !== 4) stopPulse();
-  }, [chapter, stopPulse]);
+    if (viewChapter !== 4 || suspended) stopPulse();
+  }, [viewChapter, suspended, stopPulse]);
+  useEffect(() => {
+    stopPulse();
+  }, [tempo, pulseLoop, stopPulse]);
   useEffect(() => {
     const update = () => {
       if (document.hidden) stopPulse();
@@ -271,13 +343,15 @@ export function GuitarJourney({
       context.revert();
     };
   }, []);
-  const goTo = (i: number) =>
+  const goTo = (i: number) => {
+    setStudyView(null);
     document
       .getElementById(`journey-${journeyChapters[i].id}`)
       ?.scrollIntoView({
         behavior: reducedMotion || paused ? "auto" : "smooth",
         block: "start",
       });
+  };
   return (
     <article
       className="guitar-journey"
@@ -319,14 +393,16 @@ export function GuitarJourney({
           <InstrumentBoundary onFailure={onWorldFailure}>
             <Suspense fallback={null}>
               <GuitarWorld
-                progress={reducedMotion ? chapter : position}
+                progress={studyView ?? (reducedMotion ? chapter : position)}
                 reducedMotion={reducedMotion}
                 paused={paused}
                 onReady={onReady}
                 onFailure={onWorldFailure}
-                onPluck={hearString}
+                onPluck={hearInstrumentString}
                 activeString={activeString}
                 pluckNonce={pluckNonce}
+                studyNote={studyNote}
+                studyChord={studyChord}
               />
             </Suspense>
           </InstrumentBoundary>
@@ -347,6 +423,14 @@ export function GuitarJourney({
           {reducedMotion && (
             <span className="journey-motion-status">Reduced motion</span>
           )}
+          {studyView !== null && (
+            <button
+              className="journey-motion-control journey-return-scroll"
+              onClick={() => setStudyView(null)}
+            >
+              Resume scroll view
+            </button>
+          )}
         </div>
         <nav
           className="journey-chapter-navigation"
@@ -356,8 +440,8 @@ export function GuitarJourney({
             <button
               key={item.id}
               aria-label={`${i + 1}. ${item.title}`}
-              aria-current={chapter === i ? "step" : undefined}
-              className={chapter === i ? "is-current" : ""}
+              aria-current={viewChapter === i ? "step" : undefined}
+              className={viewChapter === i ? "is-current" : ""}
               onClick={() => goTo(i)}
             >
               <span>{i + 1}</span>
@@ -407,6 +491,7 @@ export function GuitarJourney({
               <ArrowDown size={17} />
               Scroll to explore the same guitar
             </button>
+            {practiceIn(0)}
           </div>
         </section>
         <section
@@ -460,6 +545,7 @@ export function GuitarJourney({
             >
               Practise strings & tuning <ArrowRight size={18} />
             </button>
+            {practiceIn(1)}
           </div>
         </section>
         <section
@@ -475,17 +561,28 @@ export function GuitarJourney({
               One clear note.
             </h2>
             <p>
-              Put your index on the thin high e string at fret 1, just behind
-              the metal wire. Pluck gently. Listen before adding pressure.
+              {studyNote.fret === 0
+                ? `Play the ${openStringStudy[studyNote.stringIndex].name} string open, without pressing it against a fret.`
+                : `Put a fingertip on the ${openStringStudy[studyNote.stringIndex].name} string at fret ${studyNote.fret}, just behind the metal wire. Pluck gently. Listen before adding pressure.`}
             </p>
-            <ol className="journey-physical-steps">
-              <li>Curve the fingertip so its side clears the next string.</li>
-              <li>
-                Move close behind the fret. Use only enough pressure for a clean
-                note.
-              </li>
-              <li>Release your hand and build the same note again.</li>
-            </ol>
+            {studyNote.fret > 0 && (
+              <ol className="journey-physical-steps">
+                <li>Curve the fingertip so its side clears the next string.</li>
+                <li>
+                  Move close behind the fret. Use only enough pressure for a
+                  clean note.
+                </li>
+                <li>Release your hand and build the same note again.</li>
+              </ol>
+            )}
+            <NoteStudy
+              note={studyNote}
+              onChange={(note) => {
+                setStudyNote(note);
+                setStudyView(2);
+              }}
+              onHear={hearNote}
+            />
             <div className="journey-actions">
               <button
                 className="journey-primary"
@@ -495,13 +592,14 @@ export function GuitarJourney({
               </button>
               <button className="journey-text-action" onClick={hearNote}>
                 <Volume2 size={17} />
-                Hear high e, fret 1
+                Hear {resolveStudyNote(studyNote)!.pitch}
               </button>
             </div>
             <p className="journey-footnote">
               A dull note can come from position or a neighbouring fingertip.
               Check those before squeezing harder.
             </p>
+            {practiceIn(2)}
           </div>
         </section>
         <section
@@ -548,6 +646,14 @@ export function GuitarJourney({
                 destination.
               </figcaption>
             </figure>
+            <ChordStudy
+              name={studyChord}
+              onChange={(name) => {
+                setStudyChord(name);
+                setStudyView(3);
+              }}
+              onHear={() => hearShape(studyChord)}
+            />
             <div className="journey-actions">
               <button
                 className="journey-primary"
@@ -558,7 +664,14 @@ export function GuitarJourney({
               <button className="journey-text-action" onClick={onReference}>
                 All changes in one view
               </button>
+              <button
+                className="journey-text-action"
+                onClick={() => onChanges(1, "C-Am")}
+              >
+                11 quick change groups <ArrowRight size={16} />
+              </button>
             </div>
+            {practiceIn(3)}
           </div>
         </section>
         <section
@@ -579,13 +692,36 @@ export function GuitarJourney({
             </p>
             <div
               className="journey-four-beats"
-              aria-label="Four steady beats at 60 BPM"
+              aria-label={`Four steady beats at ${tempo} BPM`}
             >
               {[1, 2, 3, 4].map((beat, i) => (
                 <span key={beat} className={pulse === i ? "is-sounding" : ""}>
                   {beat}
                 </span>
               ))}
+            </div>
+            <div className="journey-pulse-settings">
+              <label>
+                Tempo
+                <select
+                  value={tempo}
+                  onChange={(e) => setTempo(+e.target.value)}
+                >
+                  {[40, 50, 60, 70, 80].map((bpm) => (
+                    <option key={bpm} value={bpm}>
+                      {bpm} BPM
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label>
+                <input
+                  type="checkbox"
+                  checked={pulseLoop}
+                  onChange={(e) => setPulseLoop(e.target.checked)}
+                />{" "}
+                Keep looping
+              </label>
             </div>
             <div className="journey-actions">
               <button
@@ -600,13 +736,18 @@ export function GuitarJourney({
                 aria-pressed={pulse !== null}
               >
                 {pulse === null ? <Volume2 size={17} /> : <Pause size={17} />}{" "}
-                {pulse === null ? "Hear four beats" : "Stop the beat"}
+                {pulse === null
+                  ? pulseLoop
+                    ? "Start pulse"
+                    : "Hear four beats"
+                  : "Stop the beat"}
               </button>
             </div>
             <p className="journey-footnote">
-              The example is 60 BPM. Choose a slower practice tempo whenever you
-              need more time to prepare a movement.
+              The example is {tempo} BPM. Choose a slower practice tempo
+              whenever you need more time to prepare a movement.
             </p>
+            {practiceIn(4)}
           </div>
         </section>
         <section
@@ -647,11 +788,21 @@ export function GuitarJourney({
               <button className="journey-text-action" onClick={onFoundations}>
                 Choose another foundation <BookOpen size={17} />
               </button>
+              <button className="journey-text-action" onClick={onJam}>
+                Play with a count-in <Play size={16} />
+              </button>
+              <button
+                className="journey-text-action"
+                onClick={() => onChanges(11)}
+              >
+                Connect all change groups <ArrowRight size={16} />
+              </button>
             </div>
             <p className="journey-footnote">
               These are practice exercises, not a performance test. Listen,
               adjust one detail, and try again.
             </p>
+            {practiceIn(5)}
           </div>
         </section>
       </div>

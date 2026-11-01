@@ -1,18 +1,21 @@
 import * as THREE from "three";
 import { fingerPosition, workshopChord } from "../lesson7";
 import { WORLD_COLORS } from "./worldSpec";
-export const GUITAR_NUT_Y = 2.12,
-  GUITAR_BRIDGE_Y = -1.08,
-  GUITAR_STRING_Z = 0.294;
+import {
+  resolveStudyNote,
+  resolveStudyChord,
+  type StudyNote,
+  GUITAR_STRING_LAYOUT,
+  studyStringCenter,
+  studyStringEndpoints,
+} from "./fretStudy";
+export const GUITAR_NUT_Y = GUITAR_STRING_LAYOUT.nutY,
+  GUITAR_BRIDGE_Y = GUITAR_STRING_LAYOUT.bridgeY,
+  GUITAR_STRING_Z = GUITAR_STRING_LAYOUT.bridgeZ;
 export const fretY = (fret: number) =>
   GUITAR_NUT_Y - (GUITAR_NUT_Y - GUITAR_BRIDGE_Y) * (1 - 2 ** (-fret / 12));
 export function stringX(index: number, y: number) {
-  const blend = THREE.MathUtils.clamp(
-    (GUITAR_NUT_Y - y) / (GUITAR_NUT_Y - GUITAR_BRIDGE_Y),
-    0,
-    1,
-  );
-  return (index - 2.5) * THREE.MathUtils.lerp(0.035, 0.05, blend);
+  return studyStringCenter(index, y).x;
 }
 function bodyShape(hole = true) {
   const s = new THREE.Shape();
@@ -110,6 +113,8 @@ export type GuitarModel = {
   pulse: THREE.Mesh;
   updatePluck: (index: number, time: number, reduced: boolean) => void;
   resetPluck: () => void;
+  updateStudyNote: (note: StudyNote | null) => boolean;
+  updateStudyChord: (name: string | null) => boolean;
   dispose: () => void;
 };
 export function createGuitarModel(): GuitarModel {
@@ -440,8 +445,13 @@ export function createGuitarModel(): GuitarModel {
   const strings: THREE.Mesh[] = [],
     bases: Float32Array[] = [];
   for (let i = 0; i < 6; i++) {
-    const a = new THREE.Vector3((i - 2.5) * 0.05, GUITAR_BRIDGE_Y, 0.294),
-      b = new THREE.Vector3((i - 2.5) * 0.035, GUITAR_NUT_Y, 0.274),
+    const endpoints = studyStringEndpoints(i),
+      a = new THREE.Vector3(
+        endpoints.bridge.x,
+        endpoints.bridge.y,
+        endpoints.bridge.z,
+      ),
+      b = new THREE.Vector3(endpoints.nut.x, endpoints.nut.y, endpoints.nut.z),
       row = i < 3 ? i : 5 - i,
       c = new THREE.Vector3(
         (i < 3 ? -1 : 1) * (0.169 + row * 0.014),
@@ -484,9 +494,65 @@ export function createGuitarModel(): GuitarModel {
     note,
   );
   noteRing.position.set(stringX(5, fretY(1) + 0.04), fretY(1) + 0.04, 0.315);
+  // These are instruction annotations, not a simulated hand. They share the
+  // precise low-E→high-e convention used by the verified chord diagrams.
+  const labelGeometry = new THREE.PlaneGeometry(0.041, 0.041);
+  const labelMaterial = (text: string, width = 64, color = "#17213b") => {
+    const canvas = document.createElement("canvas");
+    canvas.width = width;
+    canvas.height = 64;
+    const context = canvas.getContext("2d");
+    if (!context) throw new Error("Guitar annotation labels are unavailable");
+    context.clearRect(0, 0, width, 64);
+    context.font = "600 44px Arial, sans-serif";
+    context.fillStyle = color;
+    context.textAlign = "center";
+    context.textBaseline = "middle";
+    context.fillText(text, width / 2, 34);
+    const texture = new THREE.CanvasTexture(canvas);
+    texture.colorSpace = THREE.SRGBColorSpace;
+    texture.generateMipmaps = false;
+    texture.minFilter = THREE.LinearFilter;
+    texture.magFilter = THREE.LinearFilter;
+    return new THREE.MeshBasicMaterial({
+      map: texture,
+      transparent: true,
+      depthWrite: false,
+    });
+  };
+  const openLabel = mesh(
+    new THREE.PlaneGeometry(0.14, 0.047),
+    labelMaterial("OPEN", 192, "#f1f3fa"),
+    "open-string-no-pressure-label",
+    note,
+  );
+  openLabel.visible = false;
+  openLabel.castShadow = false;
+  openLabel.receiveShadow = false;
+  const updateStudyNote = (value: StudyNote | null) => {
+    const resolved = resolveStudyNote(value ?? { stringIndex: 5, fret: 1 });
+    note.userData.studyNote = resolved
+      ? `${resolved.stringIndex}:${resolved.fret}`
+      : "unavailable";
+    noteRing.visible = !!resolved;
+    openLabel.visible = !!resolved?.open;
+    if (!resolved) return false;
+    const y = resolved.open
+      ? GUITAR_NUT_Y
+      : fretY(resolved.fret) + (value === null ? 0.04 : 0.035);
+    noteRing.position.set(stringX(resolved.stringIndex, y), y, 0.315);
+    noteRing.name = resolved.open
+      ? "open-string-reference-no-finger-pressure"
+      : "selected-fretted-note-reference";
+    openLabel.position.set(stringX(resolved.stringIndex, y), y + 0.06, 0.325);
+    return true;
+  };
   const anchors = new THREE.Group();
   anchors.name = "verified-C-Am-stationary-anchors";
   root.add(anchors);
+  const defaultAnchors = new THREE.Group();
+  defaultAnchors.name = "default-C-Am-anchors";
+  anchors.add(defaultAnchors);
   for (const finger of [1, 2]) {
     const p = fingerPosition(workshopChord("C"), finger)!,
       y = fretY(p.fret) + 0.035,
@@ -494,10 +560,80 @@ export function createGuitarModel(): GuitarModel {
         new THREE.TorusGeometry(0.028, 0.005, 6, 24),
         highlight,
         `stationary-finger-${finger}`,
-        anchors,
+        defaultAnchors,
       );
     ring.position.set(stringX(p.string, y), y, 0.313);
   }
+  const chordAnnotations = new THREE.Group();
+  chordAnnotations.name = "source-chord-finger-annotations";
+  chordAnnotations.visible = false;
+  anchors.add(chordAnnotations);
+  const fingerGeometry = new THREE.CircleGeometry(0.024, 24);
+  const ringGeometry = new THREE.TorusGeometry(0.028, 0.0035, 5, 28);
+  const tokenMaterial = new THREE.MeshBasicMaterial({ color: "#f1f3fa" });
+  const fingerTokens = Array.from({ length: 4 }, (_, index) => {
+    const token = new THREE.Group();
+    token.name = `source-finger-${index + 1}`;
+    token.visible = false;
+    mesh(fingerGeometry, tokenMaterial, "finger-location-dot", token);
+    mesh(ringGeometry, tokenMaterial, "finger-location-ring", token);
+    const label = mesh(
+      labelGeometry,
+      labelMaterial(String(index + 1)),
+      "finger-number-label",
+      token,
+    );
+    label.position.z = 0.003;
+    token.traverse((object) => {
+      if (object instanceof THREE.Mesh) {
+        object.castShadow = false;
+        object.receiveShadow = false;
+      }
+    });
+    chordAnnotations.add(token);
+    return token;
+  });
+  const barre = mesh(
+    new THREE.CylinderGeometry(0.016, 0.016, 1, 12),
+    tokenMaterial,
+    "source-index-barre-extent",
+    chordAnnotations,
+  );
+  barre.rotation.z = Math.PI / 2;
+  barre.visible = false;
+  barre.castShadow = false;
+  barre.receiveShadow = false;
+  const updateStudyChord = (name: string | null) => {
+    const data = resolveStudyChord(name);
+    defaultAnchors.visible = name === null;
+    chordAnnotations.visible = !!data;
+    anchors.userData.studyChord =
+      name === null ? "default-C-Am" : (data?.name ?? "unavailable");
+    fingerTokens.forEach((token) => {
+      token.visible = false;
+    });
+    barre.visible = false;
+    if (name === null) return true;
+    if (!data) return false;
+    for (const finger of data.fingers) {
+      const y = fretY(finger.fret) + 0.035,
+        token = fingerTokens[finger.finger - 1];
+      token.position.set(stringX(finger.stringIndex, y), y, 0.317);
+      token.visible = true;
+      token.userData.stringIndex = finger.stringIndex;
+      token.userData.fret = finger.fret;
+    }
+    if (data.barre) {
+      const [fret, first, last] = data.barre,
+        y = fretY(fret) + 0.035,
+        from = stringX(first, y),
+        to = stringX(last, y);
+      barre.position.set((from + to) / 2, y, 0.314);
+      barre.scale.y = Math.abs(to - from);
+      barre.visible = true;
+    }
+    return true;
+  };
   const pulse = mesh(
     new THREE.TorusGeometry(0.395, 0.0035, 5, 80),
     highlight,
@@ -560,6 +696,8 @@ export function createGuitarModel(): GuitarModel {
     pulse,
     updatePluck,
     resetPluck,
+    updateStudyNote,
+    updateStudyChord,
     dispose,
   };
 }

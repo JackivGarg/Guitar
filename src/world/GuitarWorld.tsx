@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import { createGuitarModel } from "./guitarModel";
+import type { StudyNote } from "./fretStudy";
 import {
   clampWorldProgress,
   WORLD_COLORS,
@@ -28,6 +29,8 @@ export type GuitarWorldProps = {
   onPluck?: (stringIndex: number) => void;
   activeString?: number | null;
   pluckNonce?: number;
+  studyNote?: StudyNote | null;
+  studyChord?: string | null;
 };
 export function GuitarWorld({
   progress = 0,
@@ -39,6 +42,8 @@ export function GuitarWorld({
   onPluck,
   activeString = null,
   pluckNonce = 0,
+  studyNote = null,
+  studyChord = null,
 }: GuitarWorldProps) {
   const host = useRef<HTMLDivElement>(null),
     latest = useRef({
@@ -50,10 +55,13 @@ export function GuitarWorld({
       onPluck,
       activeString,
       pluckNonce,
+      studyNote,
+      studyChord,
     }),
     runtime = useRef<{
       invalidate: () => void;
       pluck: (index: number) => void;
+      study: (note: StudyNote | null, chord: string | null) => void;
     } | null>(null);
   latest.current = {
     progress,
@@ -64,6 +72,8 @@ export function GuitarWorld({
     onPluck,
     activeString,
     pluckNonce,
+    studyNote,
+    studyChord,
   };
   const [failed, setFailed] = useState(false),
     [poster, setPoster] = useState(true);
@@ -252,6 +262,15 @@ export function GuitarWorld({
       pluckAt = performance.now();
       invalidate();
     };
+    const study = (note: StudyNote | null, chord: string | null) => {
+      if (!model) return;
+      const noteValid = model.updateStudyNote(note),
+        chordValid = model.updateStudyChord(chord);
+      element.dataset.studyNote = String(model.note.userData.studyNote);
+      element.dataset.studyChord = String(model.anchors.userData.studyChord);
+      element.dataset.studyValid = String(noteValid && chordValid);
+      invalidate();
+    };
     const resize = () => {
       if (!renderer || !alive) return;
       const rect = element.getBoundingClientRect();
@@ -292,10 +311,11 @@ export function GuitarWorld({
     const raycaster = new THREE.Raycaster(),
       pointer = new THREE.Vector2();
     const hitString = (event: PointerEvent) => {
-      if (!renderer || !model || latest.current.paused) return null;
+      if (!renderer || !model) return null;
       const chapter = clampWorldProgress(latest.current.progress);
       if (
         !(chapter >= 0.65 && chapter <= 1.4) &&
+        !(chapter >= 1.65 && chapter <= 3.4) &&
         !(chapter >= 3.7 && chapter <= 4.3)
       )
         return null;
@@ -392,7 +412,8 @@ export function GuitarWorld({
       model = createGuitarModel();
       scene.add(model.root);
       element.dataset.worldRenderer = "three";
-      runtime.current = { invalidate, pluck };
+      runtime.current = { invalidate, pluck, study };
+      study(latest.current.studyNote, latest.current.studyChord);
       resize();
       resizeObserver = new ResizeObserver(resize);
       resizeObserver.observe(element);
@@ -446,6 +467,9 @@ export function GuitarWorld({
   useEffect(() => {
     if (activeString !== null) runtime.current?.pluck(activeString);
   }, [activeString, pluckNonce]);
+  useEffect(() => {
+    runtime.current?.study(studyNote, studyChord);
+  }, [studyNote, studyChord]);
   return (
     <div
       ref={host}

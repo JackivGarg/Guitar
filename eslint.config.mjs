@@ -7,6 +7,7 @@ export default [
     files: [
       "src/{ChangeAtlas,LearningHome,LegacyLibrary,LessonSeven,PracticeDesk,ReferenceRoom,SourceVideo,Tools}.tsx",
       "src/journey/**/*.tsx",
+      "src/changes/**/*.tsx",
       "src/world/GuitarWorld.tsx",
     ],
     rules: {

@@ -1,0 +1,301 @@
+.instrument-study {
+  margin: 26px 0;
+  padding-top: 25px;
+  border-top: 1px solid #9caee577;
+}
+.guitar-journey .instrument-study h3 {
+  color: #f1f3fa;
+  font-size: 24px;
+  line-height: 1.2;
+  margin: 0 0 14px;
+  font-weight: 500;
+}
+.guitar-journey .instrument-study p {
+  color: #d5ddff;
+  font-size: 14px;
+  line-height: 1.65;
+  margin: 12px 0;
+}
+.study-string-choices {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 6px;
+  margin: 18px 0 10px;
+}
+.study-string-choices button {
+  padding: 9px 3px;
+  min-height: 55px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+.study-string-choices small {
+  font-size: 11px;
+  color: inherit;
+}
+.study-string-choices b {
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+.study-string-choices button,
+.study-fret-choices button,
+.study-chord-choices button {
+  color: #e8ecff;
+  background: #2942b2;
+  border: 1px solid #a0b2e188;
+  border-radius: 6px;
+}
+.study-fret-choices,
+.study-chord-choices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+.study-fret-choices button,
+.study-chord-choices button {
+  flex: 1;
+  min-height: 42px;
+  padding: 8px 10px;
+  font-size: 12px;
+  white-space: nowrap;
+}
+.study-chord-choices button {
+  font-size: 15px;
+  min-width: 42px;
+}
+.study-string-choices button[aria-pressed="true"],
+.study-fret-choices button[aria-pressed="true"],
+.study-chord-choices button[aria-pressed="true"] {
+  background: #f1f3fa;
+  color: #23358f;
+  border-color: #f1f3fa;
+}
+.study-string-choices button:hover,
+.study-fret-choices button:hover,
+.study-chord-choices button:hover {
+  border-color: white;
+}
+.study-note-result {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  flex-wrap: wrap;
+  margin: 20px 0 8px;
+}
+.study-note-result strong {
+  font-size: 29px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+.study-note-result span {
+  font-size: 12px;
+  color: #d5ddff;
+}
+.study-note-result button,
+.study-chord-detail button {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 13px;
+  min-height: 38px;
+  text-decoration: underline;
+  text-underline-offset: 5px;
+  color: #f1f3fa;
+}
+.study-chord-detail {
+  display: grid;
+  grid-template-columns: minmax(90px, 130px) minmax(0, 1fr);
+  gap: 18px;
+  padding: 16px;
+  margin-top: 16px;
+  background: #f1f3fa;
+  color: #202a44;
+  border-radius: 12px;
+  align-items: center;
+}
+.study-chord-detail .chord-svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+.guitar-journey .study-chord-detail h4 {
+  color: #202a44;
+  font-size: 16px;
+  margin: 0 0 15px;
+  line-height: 1.35;
+  font-weight: 600;
+}
+.study-chord-detail ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.study-chord-detail li {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 5px;
+  font-size: 12px;
+  line-height: 1.5;
+  margin: 0 0 9px;
+  color: #465470;
+}
+.study-chord-detail li b {
+  display: inline-grid;
+  place-items: center;
+  width: 21px;
+  height: 21px;
+  border-radius: 50%;
+  background: #233db7;
+  color: white;
+  font-size: 12px;
+}
+.study-chord-detail button {
+  color: #233db7;
+}
+.journey-practice-entry {
+  padding-top: 22px;
+  margin-top: 26px;
+  border-top: 1px solid #9caee577;
+}
+.journey-practice-entry button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #f1f3fa;
+  font-size: 13px;
+  min-height: 42px;
+}
+.journey-inline-practice {
+  margin: 26px 0 0;
+  padding: 22px 0 5px;
+  border-top: 1px solid #9caee577;
+}
+.journey-practice-main {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 13px;
+}
+.journey-inline-practice button {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 10px 12px;
+  min-height: 40px;
+  font-size: 12px;
+  color: #f1f3fa;
+  border: 1px solid #a0b2e188;
+  border-radius: 6px;
+}
+.journey-practice-main > button:first-child {
+  background: #f1f3fa;
+  border-color: #f1f3fa;
+  color: #23358f;
+}
+.journey-practice-main strong {
+  font-size: 23px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  min-width: 51px;
+}
+.journey-inline-practice > label {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  font-size: 12px;
+  color: #d5ddff;
+  margin: 15px 0;
+}
+.journey-inline-practice select,
+.journey-pulse-settings select {
+  background: #f1f3fa;
+  color: #23358f;
+  padding: 8px;
+  border: 1px solid #cbd5f0;
+  border-radius: 6px;
+  min-height: 39px;
+  font-size: 12px;
+}
+.journey-practice-save {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.journey-practice-save span {
+  color: #d5ddff;
+  font-size: 11px;
+  line-height: 1.5;
+}
+.guitar-journey .journey-inline-practice > p {
+  color: #d5ddff;
+  font-size: 11px;
+  line-height: 1.6;
+  margin: 12px 0 0;
+}
+.journey-inline-practice button:disabled {
+  opacity: 0.6;
+}
+.journey-pulse-settings {
+  display: flex;
+  align-items: center;
+  gap: 23px;
+  flex-wrap: wrap;
+  margin: 20px 0;
+}
+.journey-pulse-settings label {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 13px;
+  color: #e8ecff;
+}
+.journey-pulse-settings input {
+  accent-color: #f1f3fa;
+  width: 17px;
+  height: 17px;
+}
+.journey-return-scroll {
+  background: #f1f3fa;
+  color: #23358f;
+}
+.journey-persistent-controls {
+  flex-wrap: wrap;
+  max-width: 50%;
+}
+@media (max-width: 800px) {
+  .journey-persistent-controls {
+    max-width: calc(100% - 50px);
+    gap: 8px;
+  }
+  .journey-return-scroll {
+    padding: 8px;
+    font-size: 11px;
+  }
+  .journey-copy {
+    padding-bottom: 30px;
+  }
+}
+@media (max-width: 390px) {
+  .study-chord-detail {
+    grid-template-columns: 100px minmax(0, 1fr);
+    gap: 9px;
+    padding: 12px;
+  }
+  .study-chord-detail li {
+    font-size: 11px;
+  }
+  .study-chord-detail h4 {
+    font-size: 14px;
+  }
+  .journey-practice-main {
+    gap: 8px;
+  }
+  .journey-inline-practice button {
+    padding: 9px 10px;
+  }
+}
